@@ -1,0 +1,42 @@
+[
+    {
+        "field_name": "no",
+        "field_type": "integer"
+    },
+    {
+        "field_name": "question",
+        "field_type": "text"
+    },
+    {
+        "field_name": "table_name",
+        "field_type": "text"
+    },
+    {
+        "field_name": "sql",
+        "field_type": "text"
+    },
+    {
+        "field_name": "lang",
+        "field_type": "text"
+    },
+    {
+        "field_name": "qemb",
+        "field_type": "dense_vector"
+    },
+    {
+        "field_name": "hit",
+        "field_type": "integer"
+    },
+    {
+        "field_name": "created_date",
+        "field_type": "date"
+    },
+    {
+        "field_name": "next_msg",
+        "field_type": "text"
+    },
+    {
+        "field_name": "comment",
+        "field_type": "text"
+    }
+]

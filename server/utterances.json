@@ -1,0 +1,36 @@
+{
+   "_info": {
+        "description": "two types of information that need to be identified are chat and error",
+        "version": "1.2"
+    },
+    "chat": {       
+        "msg": "Hello, how can I assist you?"
+    },
+    "chat_goodbye":{
+        "msg": "Goodbye, have a nice day!"
+    },
+    "chat_sayagain":{
+        "msg": "sorry, I didn't understand. Can you repeat that?"
+    },
+    "chat_affirm":{
+        "msg": "yes"
+    },
+    "chat_deny":{
+        "msg": "I don't think so"
+    },
+    "chat_saymore":{
+        "msg": "please tell me more details for your database"
+    },
+    "error":{
+        "msg": "I'm sorry, I'm not able to help you with that"
+    },
+    "err_llm":{
+        "msg": "can not connect to LLM server"
+    },
+    "err_parsesql":{
+        "msg": "SQL can not be parsed"
+    },
+    "err_cursor":{
+        "msg": "can not execute the SQL in database"
+    }   
+}

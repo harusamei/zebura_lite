@@ -1,0 +1,549 @@
+SELECT column1 FROM product LIMIT 10 OFFSET 20
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "product"
+        }
+    ],
+    "tables": [
+        {
+            "name": "product"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT column1,column2 FROM product1 LIMIT 10 OFFSET 20
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "product1"
+        },
+        {
+            "name": "column2",
+            "table": "product1"
+        }
+    ],
+    "tables": [
+        {
+            "name": "product1"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+select * from tableOne
+{
+    "status": "succ",
+    "columns": [],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT category, COUNT(rating) AS rating_count, AVG(rating) AS average_rating FROM product WHERE category LIKE '%fan%' group by category
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "category",
+            "table": "product"
+        },
+        {
+            "name": "COUNT",
+            "table": "product",
+            "alias": "rating_count"
+        },
+        {
+            "name": "rating",
+            "table": "product"
+        },
+        {
+            "name": "AVG",
+            "table": "product",
+            "alias": "average_rating"
+        },
+        {
+            "name": "rating",
+            "table": "product"
+        }
+    ],
+    "tables": [
+        {
+            "name": "product"
+        }
+    ],
+    "values": [
+        {
+            "column": "category",
+            "table": "product",
+            "value": "%fan%"
+        }
+    ],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT t1.name AS employee_name, t2.salary FROM employees t1 JOIN salaries t2 ON t1.id = t2.employee_id WHERE t1.age > 30 AND (t2.salary > 50000 OR t1.department = 'HR')
+{
+    "tables": [
+        {
+            "name": "employees",
+            "alias": "t1"
+        },
+        {
+            "name": "salaries",
+            "alias": "t2"
+        }
+    ],
+    "columns": [
+        {
+            "name": "name",
+            "table": "employees",
+            "alias": "employee_name"
+        },
+        {
+            "name": "salary",
+            "table": "salaries"
+        }
+    ],
+    "values": [
+        {
+            "value": 30,
+            "column": "age",
+            "table": "employees"
+        },
+        {
+            "value": 50000,
+            "column": "salary",
+            "table": "salaries"
+        },
+        {
+            "value": "HR",
+            "column": "department",
+            "table": "employees"
+        }
+    ],
+    "status": "succ",
+    "msg": "LLM: SQL extraction done"
+}
+-------------------------------------------------
+SELECT COUNT(DISTINCT category) FROM product
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "category",
+            "table": "product"
+        }
+    ],
+    "tables": [
+        {
+            "name": "product"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT DISTINCT customer_id AS ID,  first_name AS FirstName,  last_name AS LastName, city AS City FROM  customers  AS CUS ORDER BY  City ASC, LastName DESC
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "customer_id",
+            "table": "customers",
+            "alias": "ID"
+        },
+        {
+            "name": "first_name",
+            "table": "customers",
+            "alias": "FirstName"
+        },
+        {
+            "name": "last_name",
+            "table": "customers",
+            "alias": "LastName"
+        },
+        {
+            "name": "city",
+            "table": "customers",
+            "alias": "City"
+        }
+    ],
+    "tables": [
+        {
+            "name": "customers",
+            "alias": "CUS"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT d.department_name ,COUNT(e.employee_id) AS NumberOfEmployees FROM departments d  LEFT JOIN employees e ON d.department_id = e.department_id  GROUP BY d.department_name  ORDER BY  NumberOfEmployees DESC
+{
+    "tables": [
+        {
+            "name": "departments",
+            "alias": "d"
+        },
+        {
+            "name": "employees",
+            "alias": "e"
+        }
+    ],
+    "columns": [
+        {
+            "name": "department_name",
+            "table": "departments",
+            "alias": null
+        },
+        {
+            "name": "employee_id",
+            "table": "employees",
+            "alias": null
+        }
+    ],
+    "values": [],
+    "status": "succ",
+    "msg": "LLM: SQL extraction done"
+}
+-------------------------------------------------
+SELECT d.department_name, COUNT(d.employee_id) AS NumberOfEmployees FROM departments d GROUP BY d.department_name
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "department_name",
+            "table": "departments"
+        },
+        {
+            "name": "COUNT",
+            "table": "departments",
+            "alias": "NumberOfEmployees"
+        },
+        {
+            "name": "d.employee_id",
+            "table": "departments"
+        }
+    ],
+    "tables": [
+        {
+            "name": "departments",
+            "alias": "d"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT order_id, customer_id, order_date, total_amount FROM  orders  WHERE  order_date BETWEEN '2024-01-01' AND '2024-12-31'  ORDER BY  order_date ASC
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "order_id",
+            "table": "orders"
+        },
+        {
+            "name": "customer_id",
+            "table": "orders"
+        },
+        {
+            "name": "order_date",
+            "table": "orders"
+        },
+        {
+            "name": "total_amount",
+            "table": "orders"
+        }
+    ],
+    "tables": [
+        {
+            "name": "orders"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT column1 FROM tableOne ORDER BY column1 FETCH FIRST 10 ROWS ONLY
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+select column1 FROM tableOne
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT DISTINCT column1 FROM tableOne
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT column1 FROM tableOne WHERE column2 = 'value' AND column3 = 'value' OR column4 = 'value'
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [
+        {
+            "column": "column2",
+            "table": "tableOne",
+            "value": "value"
+        },
+        {
+            "column": "column3",
+            "table": "tableOne",
+            "value": "value"
+        },
+        {
+            "column": "column4",
+            "table": "tableOne",
+            "value": "value"
+        }
+    ],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT column1, COUNT(column2) FROM tableOne GROUP BY column1
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne"
+        },
+        {
+            "name": "column2",
+            "table": "tableOne"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT column1, COUNT(*) FROM tableOne GROUP BY column1 HAVING COUNT(*) > 1
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT column1 FROM tableOne ORDER BY column1 ASC
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT column1 AS renamed_column1, column2 AS renamed_column2 FROM tableOne
+{
+    "status": "succ",
+    "columns": [
+        {
+            "name": "column1",
+            "table": "tableOne",
+            "alias": "renamed_column1"
+        },
+        {
+            "name": "column2",
+            "table": "tableOne",
+            "alias": "renamed_column2"
+        }
+    ],
+    "tables": [
+        {
+            "name": "tableOne"
+        }
+    ],
+    "values": [],
+    "msg": ""
+}
+-------------------------------------------------
+UPDATE tableOne SET column1 = value1, column2 = value2 WHERE condition
+{
+    "status": "failed",
+    "columns": [],
+    "tables": [],
+    "values": [],
+    "msg": "ERR: extraction, only support select statement"
+}
+-------------------------------------------------
+SELECT * FROM employees WHERE (department = 'Sales' or salary > 10000) AND department = 'Marketing'
+{
+    "status": "succ",
+    "columns": [],
+    "tables": [
+        {
+            "name": "employees"
+        }
+    ],
+    "values": [
+        {
+            "column": "department",
+            "table": "employees",
+            "value": "Sales"
+        },
+        {
+            "column": "salary",
+            "table": "employees",
+            "value": "10000"
+        },
+        {
+            "column": "department",
+            "table": "employees",
+            "value": "Marketing"
+        }
+    ],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT * FROM products AS PP  WHERE product_name LIKE '%apple%' AND price > 1000
+{
+    "status": "succ",
+    "columns": [],
+    "tables": [
+        {
+            "name": "products",
+            "alias": "PP"
+        }
+    ],
+    "values": [
+        {
+            "column": "product_name",
+            "table": "products",
+            "value": "%apple%"
+        },
+        {
+            "column": "price",
+            "table": "products",
+            "value": "1000"
+        }
+    ],
+    "msg": ""
+}
+-------------------------------------------------
+SELECT outer_column1, outer_column2
+            FROM (
+                SELECT inner_column1 AS outer_column1, inner_column2 AS outer_column2
+                FROM inner_table
+                WHERE inner_column3 = 'some_value'
+            ) AS inner_query
+            WHERE outer_column1 > 10
+{
+    "tables": [
+        {
+            "name": "inner_table",
+            "alias": "inner_query"
+        }
+    ],
+    "columns": [
+        {
+            "name": "inner_column1",
+            "table": "inner_table",
+            "alias": "outer_column1"
+        },
+        {
+            "name": "inner_column2",
+            "table": "inner_table",
+            "alias": "outer_column2"
+        }
+    ],
+    "values": [
+        {
+            "value": "some_value",
+            "column": "inner_column3",
+            "table": "inner_table"
+        }
+    ],
+    "status": "succ",
+    "msg": "LLM: SQL extraction done"
+}
+-------------------------------------------------

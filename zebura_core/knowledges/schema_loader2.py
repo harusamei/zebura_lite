@@ -1,0 +1,204 @@
+# 关于当前DataBase的schema信息, 这个信息做为一种知识用于schema linkage,prompt and so on
+# 从系统数据库中读取schema信息
+import sys,os,logging
+sys.path.insert(0, os.getcwd().lower())
+import pandas as pd
+from typing import Dict
+from settings import z_config
+import zebura_core.constants as const
+from dbaccess.meta_update import read_metatb
+
+class ScmaLoader:
+    _is_initialized = False         # 只初始化一次
+    db_Info = None
+    tables = {}
+    project = None
+    def __init__(self, db_name=None, chat_lang='English'):  # meta_file=None
+
+        if not ScmaLoader._is_initialized:
+            ScmaLoader._is_initialized = True
+            self.project = None
+            self.tables = {}
+            if db_name is None:
+                db_name = z_config['Training', 'db_name']      # 只检查config中的db, 一个项目一个db
+                chat_lang = z_config['Training', 'chat_lang'] 
+            
+            self.db_Info = self.load_schema(db_name, chat_lang)
+
+            ScmaLoader.db_Info = self.db_Info           # 存放table的fields
+            ScmaLoader.tables = self.tables
+            ScmaLoader.project = self.project
+   
+        if self.project is None:
+            raise ValueError("No project information found in the schema file")
+        logging.debug("Loader init success")
+    
+    def load_schema(self, pj_name, chat_lang) -> Dict:
+        
+        print(f"read meta_{pj_name} from system database")
+        df = read_metatb(pj_name, chat_lang)
+        #print(df.columns.tolist())
+        dfList = {}
+        #print(df.columns.tolist())
+        self.project = df[list(const.Z_META_PROJECT)]
+        tb_df = df[list(const.Z_META_TABLES)]
+        col_df = df[list(const.Z_META_FIELDS)]
+        for _, row in tb_df.iterrows():
+            tb_name = row['table_name']
+            t_df = col_df[col_df['table_name'] == tb_name]
+            t_df = t_df.fillna('')
+            dfList[tb_name] = t_df
+            self.tables[tb_name] = row
+
+        return dfList
+        
+    def get_table_nameList(self) -> list:
+        return self.tables.keys()
+    
+    # 表的所有column_name，None为所有表
+    def get_column_nameList(self, tableName=None) -> list:
+        if tableName not in self.tables:
+           tbList = self.get_table_nameList()
+        else:
+            tbList = [tableName]
+        columnList = []
+        for tableName in tbList:
+            tList = self.db_Info[tableName]['column_name']
+            columnList.extend(tList.tolist())
+        return columnList
+    
+    # 一组表名的所有表
+    def get_tables(self, tableNames):
+        if isinstance(tableNames, str):
+            tableNames = [tableNames]
+        tList = []
+        for name in tableNames:
+            name = name.lower()
+            if self.tables.get(name) is not None:
+                tList.append(self.tables[name])
+        
+        return tList
+            
+    # Z_META_FIELDS = ['table_name','column_name','alias','column_desc','column_type',
+    #            'column_key','column_length','val_lang', 'examples','comment']  
+    # 得到某一个字段的上述meta信息
+    def get_fieldInfo(self, tableName, columnName)->dict:
+        tableName = tableName.lower()
+        columnName = columnName.lower()
+        onetb = self.db_Info.get(tableName)
+        if onetb is None:
+            return None
+        onetb = onetb[onetb['column_name']==columnName]
+        if onetb.empty:
+            return None
+        tdict = onetb.iloc[0].to_dict()
+        return tdict
+
+    # tb_names: relevant table list
+    # max_len: the max length of all tables' prompt
+    # 生成相关表信息的有长度限制的prompt  
+    def gen_limited_prompt(self, max_len,tb_names=None) ->list:
+        # 所有表
+        if tb_names is None or len(tb_names) == 0:
+            tb_names = self.get_table_nameList()
+
+        tb_len, lit_len = 0, 0
+        g_prompts ={}
+        table_list = self.get_tables(tb_names)
+        for table in table_list:
+            tb_len += len(table['tb_prompt'])
+            lit_len += len(table['tb_promptlit'])
+            if table['group_name'] not in g_prompts:
+                g_prompts[table['group_name']] = table['group_prompt']
+        if tb_len < max_len:
+            prompts = [f"Table:{table['table_name']}\n{table['tb_prompt']}" for table in table_list]
+        elif lit_len < max_len:
+            prompts = [f"Table:{table['table_name']}\n{table['tb_promptlit']}" for table in table_list]
+        else:
+            prompts = [v for v in g_prompts.values()]
+            if sum(len(prompt) for prompt in prompts) > max_len:
+                prompts = [self.get_db_prompt()]
+
+        return prompts
+
+    # 一张表的所有信息
+    def get_tb_prompt(self, tb_name):
+        table = self.tables.get(tb_name,None)
+        if table is not None:
+            return table['tb_prompt']
+        else:
+            return ""
+    # group prompt
+    def get_gp_prompt(self, tb_name):
+        table = self.tables.get(tb_name,None)
+        if table is not None:
+            return table['group_prompt']
+        else:
+            return ""
+
+     # 所有表的prompt
+    def get_db_prompt(self):
+        return self.project['db_prompt'][0]
+   
+    # 含此column_name的所有表名  
+    def get_tables_with_column(self, column_name) -> list: 
+        nameList = []  
+        for tb_name in self.tables.keys():
+            tList = self.db_Info[tb_name]['column_name']
+            if column_name in tList.tolist():
+                nameList.append(tb_name)
+
+        return nameList
+    
+    def get_db_summary(self):
+        db_info = {'database':{},'tables':[]}
+        db_dict = {'name':self.project['database_name'][0],'desc':self.project['db_desc'][0]}
+        db_info['database'] = db_dict
+
+        tb_names = self.get_table_nameList()
+        tables = self.get_tables(tb_names)
+        db_info['tables'] = []
+        for tb in tables:
+            tb_info = {}
+            tb_info['name'] = tb['table_name']
+            tb_info['columns'] = self.get_column_nameList(tb['table_name'])
+            tb_info['group'] = tb['group_name']
+            tb_info['desc'] = tb['tb_desc']
+            db_info['tables'].append(tb_info)
+        return db_info
+       
+    
+    # 得到每个字段的一些值
+    def get_examples(self,table_name):
+        examples = []
+        col_names = self.get_column_nameList(table_name)
+        for colName in col_names:
+            col_info = self.get_columnInfo(table_name, colName)
+            if col_info is None:
+                continue
+            if col_info['examples']!=None and len(col_info['examples'])>1:
+                examples.append(f'Column:{colName}, example values are: {col_info["examples"]}')
+        return examples 
+
+# Example usage
+if __name__ == '__main__':
+    # Load the SQL patterns
+    
+    loader = ScmaLoader('imdb', 'English')
+    # tbList = loader.get_table_nameList()
+    # tbList = list(tbList)
+    # print(tbList)
+    # print(loader.get_column_nameList())
+    # print(loader.get_column_nameList('imdb_movie_dataset'))
+    # print(loader.get_fieldInfo('imdb_movie_dataset', 'votes'))
+
+    # print(loader.get_tables(tbList[:2]))
+    # print(loader.get_tb_prompt('imdb_movie_dataset'))
+    # print(loader.get_gp_prompt('Movie Information'))
+    # print(loader.get_db_prompt())
+
+    # print(loader.get_tables_with_column('rank')) 
+    print('_________________________')
+    print(loader.get_db_summary())
+
+
