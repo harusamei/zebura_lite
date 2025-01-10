@@ -4,24 +4,24 @@ cookie:
   name: zebrua_db # Must be a string
 credentials:
   usernames:
-    jsmith:
-      email: jsmith@gmail.com
+    zebura:
+      email: 
       failed_login_attempts: 0 # Will be managed automatically
-      first_name: John
-      last_name: Smith
+      first_name: Lite
+      last_name: Zebura
       logged_in: False # Will be managed automatically
-      password: abc # Will be hashed automatically
+      password: zebura # Will be hashed automatically
       roles: # Optional
       - admin
       - editor
       - viewer
-    rbriggs:
-      email: rbriggs@gmail.com
+    demo:
+      email: 
       failed_login_attempts: 0 # Will be managed automatically
-      first_name: Rebecca
-      last_name: Briggs
+      first_name: demo
+      last_name: Zebura
       logged_in: False # Will be managed automatically
-      password: def # Will be hashed automatically
+      password: demo # Will be hashed automatically
       roles: # Optional
       - viewer
 oauth2: # Optional
