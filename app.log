@@ -1,0 +1,1 @@
+INFO - Backing off __post(...) for 0.3s (requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='log.kanaries.net', port=443): Read timed out. (read timeout=15))
