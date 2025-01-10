@@ -2,7 +2,7 @@
 
 #### 介绍
 乞丐版text2sql，除了LLM和用户数据库其它啥都不需要
-![txt2sql](./txt2sql.png)
+![txt2sql](./public/sql苦手.webp)
 
 #### 软件架构
 软件架构说明
