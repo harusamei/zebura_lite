@@ -1,6 +1,6 @@
 ###############
 # Purpose: Output metadata of the database
-# The database information has already been configured in the config.ini file.
+# The database information has already been configured in the config_lite.ini file.
 ###############
 import sys,os
 sys.path.insert(0, os.getcwd().lower())

@@ -8,7 +8,7 @@ class Settings:
     def __init__(self):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         self.config = configparser.ConfigParser()
-        self.config.read(os.path.join(BASE_DIR, 'config.ini'), encoding="utf-8")
+        self.config.read(os.path.join(BASE_DIR, 'config_lite.ini'), encoding="utf-8")
         # self.config.read('config.ini',encoding='utf-8')
         self.settings()
         Settings.isinstance_count += 1

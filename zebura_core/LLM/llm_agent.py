@@ -7,7 +7,7 @@ import logging
 class LLMAgent(LLMBase):
 
     def __init__(self, agentName=None, model=None):
-        # 默认使用config.ini 中[Training]配置
+        # 默认使用config_lite.ini 中[Training]配置
         if agentName is None:
             agentName = z_config['Training', 'llm']
             model = z_config['Training', 'llm_model']
