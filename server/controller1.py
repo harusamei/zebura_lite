@@ -19,7 +19,7 @@ from zebura_core.placeholder import make_a_log, make_a_req
 class Controller:   
     # 一些应急话术
     utterance = {}
-    with open("server\\utterances.json", "r") as f:
+    with open("server/utterances.json", "r") as f:
         utterance = json.load(f)
     pj_name = z_config['Training', 'db_name']
     chat_lang = z_config['Training', 'chat_lang']

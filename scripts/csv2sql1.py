@@ -154,7 +154,7 @@ if __name__ == "__main__":
     print(f"load all csv files in {csv_name} to {db_name} in {s_name} server")
 
     # 用户确认
-    user_input = input("Do you want to continue? (Y/N): ").strip().upper()
+    user_input = input("Are the csv path and database name correct? (Y/N): ").strip().upper()
     if user_input != 'Y':
         print("Operation aborted by the user.")
         exit()
