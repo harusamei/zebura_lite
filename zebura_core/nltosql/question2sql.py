@@ -79,12 +79,17 @@ class Question2SQL:
         # outfile.write("\n------------\n")
 
         resp["status"] = result['status']
-        resp["msg"] = result['msg']['sql']      # only sql
         resp['note'] = result['msg']            # all breakdown info {'columns','tables', 'values', 'sql'}
         if result['status'] == 'failed':
             resp['type'] = 'err_llm'
+            resp['error'] = result['msg']
         else:
             resp['format'] = 'sql'
+            if 'sql' not in result['msg']:
+                logging.error(f"sql not in result['msg']:{result['msg']}")
+                resp['msg'] = ''
+            else:
+                resp["msg"] = result['msg']['sql']      # only sql
         if gcases is not None:
             resp['others']['gcases'] = gcases
         return resp

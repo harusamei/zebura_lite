@@ -337,10 +337,9 @@ async def apply(request):
     return answ
 
 async def main():
-    questions = ['今天天气哈哈哈',
-                 '収益が最も高い映画は何ですか？',
-                 '请列出数据库中所有的表名和列名。', 
-                 'Find the types of fans available in the database.']
+    questions = ['How many restaurants in the dataset have a metascore above 80?',
+                 'Which restaurant has the highest rating?',
+                 '列出可以抽烟的餐厅']
        
     for msg in questions:
         start = time.time()
@@ -353,8 +352,7 @@ async def main():
                 print(f"{key}: {resp[key]}")
         print("=============")
     
-    
+   
 if __name__ == "__main__":
     asyncio.run(main())
-    # controller = Controller()
-    # controller.get_db_summary()
+    

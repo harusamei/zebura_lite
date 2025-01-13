@@ -134,17 +134,16 @@ class CSV2SQL:
 
 # Example usage
 if __name__ == "__main__":
-    # python scripts/csv2sql1.py --db_name restaurant_ratings --csv_path "training/restaurant_ratings/raw data"
+    # python scripts/csv2sql1.py --csv_path "training/us_candy_distributor/raw data"
     from zebura_core.placeholder import make_dbServer
     from settings import z_config
 
     parser = argparse.ArgumentParser(description='load csv files to current db server')
     parser.add_argument('--csv_path', type=str, required=True, help='csv files to load')
-    parser.add_argument('--db_name', type=str, required=True, help='database name')
     args = parser.parse_args()
     csv_name = args.csv_path
     csv_name = os.path.join(os.getcwd(), csv_name)
-    db_name = args.db_name
+    db_name = z_config['Training','db_name']
     s_name = z_config['Training', 'server_name']
     # s_name = 'Postgres1'
     # db_name = 'IMDB'
@@ -152,7 +151,12 @@ if __name__ == "__main__":
     dbServer = make_dbServer(s_name)
     dbServer['db_name'] = db_name
     csv2sql = CSV2SQL(dbServer)
-
     print(f"load all csv files in {csv_name} to {db_name} in {s_name} server")
+
+    # 用户确认
+    user_input = input("Do you want to continue? (Y/N): ").strip().upper()
+    if user_input != 'Y':
+        print("Operation aborted by the user.")
+        exit()
     csv2sql.load_files(csv_name)
     print("Done")

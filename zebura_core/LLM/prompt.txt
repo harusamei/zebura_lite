@@ -471,7 +471,7 @@ Please strictly follow the JSON format of the output example.
 Generate an SQL query based on a user's natural language input and a provided database schema. The output must include a comprehensive breakdown of the SQL statement, detailing the involved tables, columns, and the values used in the WHERE clause.
 
 ### Requirements:
-Please strictly follow the JSON format of the output example. not trailing commas in the JSON object.
+Please strictly follow the JSON format of the output example. Ensure that the JSON is syntactically correct and does not contain any extra commas after the last element in arrays or objects.
 
 ### Output Example:
 ```json

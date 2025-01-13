@@ -506,3 +506,37 @@ Please strictly follow the JSON format of the output example.
 ### Output:
 
 </TASK>
+
+<TASK: data_exploration>
+### Task Description:
+You are given the schema of a database table, an SQL query, and its result. Your task is to infer what aspects of the database table the user might be interested in and generate several natural language questions. Consider the following scenarios:
+- If the result is empty, generate several broader natural language query suggestions to help the user adjust the query conditions and obtain meaningful results.
+- If the query has results, analyze the data and conditions in the query to infer possible interests or follow-up questions the user might have.
+
+### Requirements:
+Please strictly follow the JSON format of the output example. not trailing commas in the JSON object.
+
+### Output Example:
+```json
+{{
+  "actions": [
+    "<suggesion1>",
+    "<suggesion2>"
+  ],
+  "questions": [
+    "<question1>",
+    "<question2>"
+  ]
+}}
+```
+
+### Input:
+** Database Schema: **
+{db_info}
+** SQL Query: **
+{sql_query}
+** SQL Query result: **
+{sql_result}
+
+### Output:
+</TASK>
