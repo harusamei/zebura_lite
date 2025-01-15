@@ -1,13 +1,18 @@
-import sys,os
+import sys
+import os
 sys.path.insert(0, os.getcwd().lower())
-import time,inspect
+import time
+import inspect
 import pandas as pd
 from server.controller1 import Controller
 from zebura_core.placeholder import make_a_log, make_a_req
 import argparse
 import asyncio
 
+
 controller = Controller()
+
+
 async def apply(request):
     # 记录所有状态，包括transit，不删除任何状态
     # pipeline 中记录 question, sql的变化

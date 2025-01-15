@@ -144,9 +144,10 @@ class Scanner:
         
         from datetime import datetime
         now = datetime.now()
-        schema = {  "_comment":f"The schema is generated through file {os.path.basename(file_path)} ,created in the {now.date()}",
-                    "tables":[]
-                }
+        schema = {  
+            "_comment":f"The schema is generated through file {os.path.basename(file_path)} ,created in the {now.date()}",
+            "tables":[]
+        }
         df = pd.read_excel(file_path, sheet_name=project)
         num_rows = df.shape[0]
         for i in range(0,num_rows):

@@ -16,6 +16,7 @@ from zebura_core.utils.conndb import connect
 import logging,asyncio
 from typing import Union, Dict, Any
 
+
 class GenActivity:
 
     prompter = Prompt_generator()
@@ -33,7 +34,7 @@ class GenActivity:
         self.prompter = GenActivity.prompter
         self.ans_extr = GenActivity.ans_extr
         self.llm = GenActivity.llm
-        self.checker = CheckSQL(dbServer,chat_lang)
+        self.checker = CheckSQL(dbServer, chat_lang)
         self.scha_loader = ScmaLoader(db_name, chat_lang)
         
         logging.info("GenActivity init done")
@@ -88,7 +89,7 @@ class GenActivity:
         tmpl = self.prompter.tasks['data_exploration']
         query = tmpl.format(db_info=dbSchema, sql_query=sql, sql_result=result)
         result = await self.llm.ask_llm(query, '')
-        parsed = self.ans_extr.output_extr('data_exploration',result)
+        parsed = self.ans_extr.output_extr('data_exploration', result)
         resp['status'] = parsed['status']
         if parsed['status'] == 'succ':
             questions = parsed['msg'].get('questions', [])
@@ -111,11 +112,11 @@ class GenActivity:
         # 没有函数，也没有where条件，不需要详细信息
         if not needFlag:
             return { 'msg': '', 'status': 'failed'}
-        
+ 
         all_checks = await self.checker.check_sql(sql)
         if all_checks['status'] != 'succ':
             return { 'msg': '', 'status': 'failed'}
-        
+  
         rel_tables = [tb for tb in all_checks['tables'].keys() if tb != 'status']
         db_prompts = self.scha_loader.gen_limited_prompt(max_prompt_len, rel_tables)
         dbSchema ='\n'.join(db_prompts)
@@ -135,7 +136,7 @@ class GenActivity:
         if 'status' in all_checks['columns']:
             del all_checks['columns']['status']
         tb_names = self.checker.gen_rel_tables(all_checks)
-        tb_prompts = self.scha_loader.gen_limited_prompt(max_prompt_len,tb_names)
+        tb_prompts = self.scha_loader.gen_limited_prompt(max_prompt_len, tb_names)
 
         checkMsgs = {'msg': '', 'db_prompt': ''}
         msg = '\n'.join(all_checks['msg'][:-1])

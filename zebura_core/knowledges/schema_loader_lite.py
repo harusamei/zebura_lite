@@ -41,7 +41,11 @@ class ScmaLoader:
 
         langcode = langname2code(chat_lang)
         if langcode != 'en':
+            xls_origin = xls_name
             xls_name = xls_name.replace('.xlsx', f'_{langcode}.xlsx')
+        # 多语言的schema文件不存在，使用原始的
+        if not os.path.exists(f"{path}/{pj_name}/{xls_name}"):
+            xls_name = xls_origin
         print(f"read metadata from {path}/{pj_name}/{xls_name}")
         wk_dir = os.getcwd()
         xls_name = os.path.join(wk_dir, f"{path}/{pj_name}/{xls_name}")
@@ -75,7 +79,7 @@ class ScmaLoader:
     # 表的所有column_name，None为所有表
     def get_column_nameList(self, tableName=None) -> list:
         if tableName not in self.tables:
-           tbList = self.get_table_nameList()
+            tbList = self.get_table_nameList()
         else:
             tbList = [tableName]
         columnList = []
@@ -193,7 +197,7 @@ class ScmaLoader:
             col_info = self.get_columnInfo(table_name, colName)
             if col_info is None:
                 continue
-            if col_info['examples']!=None and len(col_info['examples'])>1:
+            if len(col_info.get('examples',[]))>1:
                 examples.append(f'Column:{colName}, example values are: {col_info["examples"]}')
         return examples 
 

@@ -65,7 +65,7 @@ class Question2SQL:
             for case in gcases:
                 tSet = set(case['doc'].get('table_name','').split(';'))
                 if  len(tSet)>0 and tSet.issubset(reltb_names):
-                        shots.append({'question':case['doc']['question'],'sql':case['doc']['sql']})
+                    shots.append({'question':case['doc']['question'],'sql':case['doc']['sql']})
             examples = json.dumps(shots, ensure_ascii=False)
         db_info = self.get_db_prompt(tb_names)
 

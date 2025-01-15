@@ -2,12 +2,13 @@
 import sys,os
 sys.path.insert(0, os.getcwd().lower())
 from settings import z_config
-from zebura_core.utils.conndb import connect,get_engine
+from zebura_core.utils.conndb import connect, get_engine
 import logging
 import pandas as pd
 from zebura_core.placeholder import make_a_log
 from placeholder import make_dbServer
 from sqlalchemy import create_engine
+
 
 class ExeActivity:
     def __init__(self):
@@ -23,7 +24,7 @@ class ExeActivity:
         self.engine = get_engine(dbServer)
         logging.info(f"ExeActivity init success")
 
-    def checkDB(self,db_name=None) -> str:  # failed, succ
+    def checkDB( self, db_name=None ) -> str:  # failed, succ
 
         if db_name is None:
             db_name = self.db_name
@@ -80,6 +81,7 @@ class ExeActivity:
             df = pd.DataFrame()
         return df
     
+
 if __name__ == "__main__":
     
     exr = ExeActivity()

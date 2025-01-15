@@ -92,6 +92,7 @@ class AnsExtractor:
         result = copy.copy(self.result)
         aws = llm_answer.replace('```json\n', '')
         aws = aws.replace('\n```', '')
+        aws = re.sub(r',\s*([\]}])', r'\1', aws)    # trailing comma
         # loc = re.search(r'[\[{"]', aws)  # 查找首个合法JSON字符
         # if loc:
         #     loc = loc.start()
@@ -310,9 +311,7 @@ class AnsExtractor:
     
 if __name__ == "__main__":
     ans_extr = AnsExtractor()
-    llm_output = """
-                        ### Output:
-
+    llm_output = """```json
                         [
                             {
                                 "question": "哪位导演的电影评分最高？",
@@ -325,7 +324,7 @@ if __name__ == "__main__":
                             {
                                 "question": "哪位导演的电影评分最低？",
                                 "sql": "SELECT director, MIN(rating) AS min_rating FROM imdb_movie_dataset GROUP BY director ORDER BY min_rating ASC LIMIT 1;"
-                            }
+                            },
                         ]
                 """
     result1 = ans_extr.output_extr('default',llm_output)

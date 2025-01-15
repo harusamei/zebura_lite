@@ -10,9 +10,10 @@ import logging, re, random, itertools,asyncio
 from typing import Union, Dict, Any
 from zebura_core.utils.conndb import connect
 
+
 class CheckSQL:
 
-    def __init__(self, dbServer,chat_lang='english'):
+    def __init__(self, dbServer, chat_lang='english'):
         self.db_name = dbServer['db_name']
         self.cnx = connect(dbServer)
         if self.cnx is None:
@@ -129,9 +130,9 @@ class CheckSQL:
         # (ori_term, col_like, tb_like, score)
         matched = self.sl.link_fields(fields)                   # 暂时未做表名限制，column names在所有表中匹配  
         for tup in matched:
-            loc = fields.index(tup[0])
-            t_tb = tbs[loc]
-            if tup[0] == tup[1]:                    # 完全匹配, 保留原始所属表
+            if tup[0] == tup[1] and tup[0] in fields:                 # 完全匹配, 保留原始所属表
+                loc = fields.index(tup[0])
+                t_tb = tbs[loc]
                 fields_check[tup[0]] = (tup[1],t_tb)
             else:
                 fields_check['status'] = 'failed'           # 不完全一致则failed
@@ -208,14 +209,14 @@ class CheckSQL:
         checks = all_checks['tables']
         # key: table_name, value: matched_name
         for _, tb1 in checks.items():
-            if tb1 != None:
+            if tb1 is not None:
                 tb_names.append(tb1)
         checks = all_checks['columns']
         base = ['']
         # key: col, value: col_like, table
         # 每个column 所属表的全组合
         for _, (col1, tbs) in checks.items():
-            if tbs != None:
+            if tbs is not None:
                 list1 = tbs.split(';')
                 base = list(itertools.product(base, list1))
                 base = [f'{x[0]};{x[1]}'.strip(';') for x in base]

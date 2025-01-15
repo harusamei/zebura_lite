@@ -34,7 +34,7 @@ def connect(dbServer):
 
     db_type = dbServer.get('db_type')
     if db_type is None:
-        print(f"ERR: db_type cannot be None")
+        print("ERR: db_type cannot be None")
         return None
     if db_type == 'mysql':
         dbServer['db_name'] = dbServer.get('db_name','mysql')
@@ -51,8 +51,8 @@ def connect(dbServer):
 def mysql_connect(dbServer):
 
     if dbServer is None or dbServer.get('db_name') is None:
-        print(f"ERR: dbServer or db_name cannot be None")
-        raise ValueError(f"ERR_cursor: dbServer or db_name cannot be None")
+        print( "ERR: dbServer or db_name cannot be None")
+        raise ValueError( "ERR_cursor: dbServer or db_name cannot be None")
     
     db_params = {
         'host': dbServer['host'],
@@ -82,8 +82,8 @@ def mysql_connect(dbServer):
 
 def Postgres_connect(dbServer):
     if dbServer is None:
-        print(f"ERR: dbServer cannot be None")
-        raise ValueError(f"ERR_cursor: dbServer cannot be None")
+        print("ERR: dbServer cannot be None")
+        raise ValueError("ERR_cursor: dbServer cannot be None")
     
     db_params = {
         'dbname': dbServer['db_name']
