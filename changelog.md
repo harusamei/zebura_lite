@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [Version 1.0.1]
 
 ### Added
 - 
@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - 
 
 ### Fixed
-- 
+- 由 index引起的bug in sql_checker.py
 
 ### Removed
 

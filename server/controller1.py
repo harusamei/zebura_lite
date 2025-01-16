@@ -247,7 +247,7 @@ class Controller:
             new_Log['note'] = "error: no sql4db before polish\n"
             pipeline.append(new_Log)
             return
-        
+        # 确保存在sql4db
         reverse_indx = fromList[::-1].index('sql4db')
         indx = len(fromList) - reverse_indx - 1
         # markdown

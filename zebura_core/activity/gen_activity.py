@@ -41,7 +41,7 @@ class GenActivity:
 
     # 主功能, 生成最终用于查询的SQL
     # sql 可以是sql statement, or sql statement and parsed sql with {tables, columns, values}
-    async def gen_activity(self, query:str, sql:Union[str,Dict[str, Any]]):
+    async def gen_activity(self, query: str, sql: Union[str, Dict[str, Any]]):
         resp = make_a_log('gen_activity')
 
         all_checks = await self.checker.check_sql(sql)
@@ -161,7 +161,7 @@ class GenActivity:
 
         query = tmpl.format(dbSchema=dbSchema, ori_sql=orisql, err_msgs=errmsg)
         result = await self.llm.ask_llm(query, '')
-        parsed = self.ans_extr.output_extr('sql_revise',result)
+        parsed = self.ans_extr.output_extr('sql_revise', result)
 
         # outFile = 'output.txt'
         # with open(outFile, 'a', encoding='utf-8') as f:
@@ -197,8 +197,8 @@ class GenActivity:
             conds_check['status'] == 'succ'
             return conds_check
         
-        kterms =[[key, val[0], val[2]] for key,val in ni_words.items()]
-        kterms.insert(0, ['Keyword', 'Category','Output Language'])
+        kterms = [ [key, val[0], val[2]] for key, val in ni_words.items() ]
+        kterms.insert(0, ['Keyword', 'Category', 'Output Language'])
         query = self.prompter.gen_tabulate(kterms)
         prompt = self.prompter.tasks['term_expansion']
         result = await self.llm.ask_llm(query, prompt)

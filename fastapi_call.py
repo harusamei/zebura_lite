@@ -3,7 +3,7 @@ from zebura_core.placeholder import make_a_req
 import time
 
 # 假设API运行在localhost的8000端口
-url = 'http://localhost:8000/nl2sql/'
+url = 'http://localhost:8000/zebura/'
 
 def call_api(query):
     # 创建一个示例Item对象的字典，这应该与你的Item模型字段相匹配
@@ -28,4 +28,4 @@ start = time.time()
 for query in querys:
     call_api(query)
 end = time.time()
-print(f"Time taken: {end-start} seconds")
+print(f"avg time cost: {(end-start)/len(querys)} seconds")
