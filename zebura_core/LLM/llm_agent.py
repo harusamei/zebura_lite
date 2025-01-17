@@ -11,7 +11,12 @@ class LLMAgent(LLMBase):
         if agentName is None:
             agentName = z_config['Training', 'llm']
             model = z_config['Training', 'llm_model']
-        super().__init__(agentName, model)
+        if model is None or len(model) == 0:
+            model = "gpt-3.5-turbo-ca"
+        try:
+            super().__init__(agentName, model)
+        except Exception as e:
+            raise ValueError(f"LLM agent init error: {e.args[0]}")
 
     async def ask_llm_list(self, queries: list[str], prompts: list[str]) -> list[str]:
         # create a task list
@@ -40,14 +45,16 @@ class LLMAgent(LLMBase):
 
         return results
 
-    async def ask_llm(self, query: str, prompt: str) -> str:
+    async def ask_llm(self, query: str, content: str) -> str:
 
         if query is None or len(query) == 0:
             return ""
         
-        content = prompt
-        messages = [{"role": "system", "content": content}]
-        messages.append({"role": "user", "content": query})
+        if content is None or len(content) == 0:
+            messages = [{"role": "user", "content": query}]
+        else:
+            messages = [{"role": "system", "content": content}]
+            messages.append({"role": "user", "content": query})
 
         # 输出prompt 和 query check
         # cur_loglevel = logging.getLogger().getEffectiveLevel()
@@ -80,7 +87,7 @@ if __name__ == '__main__':
               "今天天气挺好的，你觉得呢？"]
     pg = Prompt_generator()
     tmpl = pg.get_prompt('nl_to_sql')
-    agent = LLMAgent('OPENAI', 'gpt-3.5-turbo')
+    agent = LLMAgent('CHATANYWHERE', 'gpt-3.5-turbo')
     start = time.time()
 
     query = tmpl.format(db_info='', examples='', question=questions[0])

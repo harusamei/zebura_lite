@@ -90,20 +90,16 @@ class AnsExtractor:
     # 解析从LLM获得的SQL提取信息
     def parse_json(self, llm_answer) -> dict:
         result = copy.copy(self.result)
-        aws = llm_answer.replace('```json\n', '')
-        aws = aws.replace('\n```', '')
+
+        tlist = llm_answer.split('```json', 1)
+        if len(tlist) >1:
+            aws = tlist[1]
+        else:
+            aws = llm_answer
+        aws = aws.rsplit('```', 1)[0]
+        aws = aws.strip()
         aws = re.sub(r',\s*([\]}])', r'\1', aws)    # trailing comma
-        # loc = re.search(r'[\[{"]', aws)  # 查找首个合法JSON字符
-        # if loc:
-        #     loc = loc.start()
-        #     aws = aws[loc:]  # 从首个合法JSON字符开始
-        # else:
-        #     loc = -1         
-        #     print(f'Json decode error:\n------------\n')
-        #     result['status'] = 'failed'
-        #     result['msg'] = llm_answer
-        #     print(llm_answer)
-        #     return result
+        
         try:
             # 将 JSON 字符串转换为字典
             aws = aws.replace('\"', '"')

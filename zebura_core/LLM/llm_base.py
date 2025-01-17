@@ -1,10 +1,12 @@
 import http.client
+import httpx
+from openai import OpenAI
 import json
 import os
 import sys
 sys.path.insert(0, os.getcwd())
 from settings import z_config
-import openai
+
 
 # openai 转发, https://peiqishop.cn/
 # agentName： OPENAI, CHATANYWHERE
@@ -19,33 +21,33 @@ class LLMBase:
             self.agentName = agentName.upper()
             self.temperature = temperature
             sk = z_config['LLM',f'{self.agentName}_KEY']
-            
+            url = z_config['LLM',f'{self.agentName}_URL']
+            self.headers = None
             self.model = model
-            messages=[{'role': 'user', 'content': 'who are you and where are you from?'}]
+
             if self.agentName == 'OPENAI':
-                openai.api_key=sk
-                self.client = openai
-                self.headers = None
+                self.client = OpenAI(
+                    api_key=sk,  # This is the default and can be omitted
+                )
             elif self.agentName == 'CHATANYWHERE':
                 self.client = http.client.HTTPSConnection("api.chatanywhere.tech")
                 self.headers = {
                         'Authorization': sk,
-                        'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
+                        'User-Agent': url,
                         'Content-Type': 'application/json'
-                    }
+                }
             elif self.agentName == 'AZURE':
-                url = "https://openai-lr-ai-platform-cv-ncus.openai.azure.com/openai/deployments/Intent4O/chat/completions?api-version=2024-02-01"
                 self.client = http.client.HTTPSConnection("openai-lr-ai-platform-cv-ncus.openai.azure.com")
                 self.headers = {
                         "Content-Type": "application/json",
                         "api-key": sk    
-                    }
+                }
+            elif self.agentName == 'AIMASTER':
+                client_verify = httpx.Client(verify=False)
+                self.client = OpenAI(api_key=sk, base_url=url, http_client=client_verify)
             else:
                 raise ValueError("No available LLM agents, please check the agentName")
-            # try:
-            #     print(f"connect GPT through {agentName}\n Message for connection test:"+self.postMessage(messages))
-            # except Exception as e:
-            #     raise ValueError("LLM agent is not available",e)
+            
             LLMBase.agentName = self.agentName
             LLMBase.temperature = self.temperature
             LLMBase.model = self.model
@@ -71,12 +73,13 @@ class LLMBase:
             res = json.loads(res.decode("utf-8"))
             data = res['choices'][0]['message']['content']
         elif self.agentName == 'OPENAI':
-            res = self.client.ChatCompletion.create(
-                                                        messages=messages,
-                                                        model=self.model,
-                                                        stop=["#;\n\n"],
-                                                        temperature=self.temperature
-                                                        )
+            
+            res = self.client.chat.completions.create(
+                                                    messages=messages,
+                                                    model=self.model,
+                                                    stop=["#;\n\n"],
+                                                    temperature=self.temperature
+                                            )
             data = res.choices[0].message.content
         elif self.agentName == "AZURE":
             payload = {
@@ -91,12 +94,23 @@ class LLMBase:
             res = self.client.getresponse().read()
             res = json.loads(res.decode("utf-8"))
             data = res['choices'][0]['message']['content']
+        elif self.agentName == "AIMASTER":
+            completion = self.client.chat.completions.create(
+                    model="llama3.2-90B",
+                    messages=messages,
+                    stream=False,
+                    temperature=self.temperature
+                )
+            data = completion.choices[0].message.content
         return data
 
 # Example usage
 if __name__ == '__main__':
-    agent = LLMBase(agentName='OPENAI',model="gpt-3.5-turbo")
-    print(agent.postMessage([{'role': 'user', 'content': 'Who won the world series in 2020?'}]))
-    agent = LLMBase('CHATANYWHERE')
-    print(agent.postMessage([{'role': 'user', 'content': 'Who won the world series in 2020?'}]))
-    agent = LLMBase('AZURE')
+    messages=[{'role': 'user', 'content': 'are you a AI language model?  please tell me your model details'}]
+    #messages=[{'role': 'user', 'content': 'Who won the world series in 2020?'}]
+    # agent = LLMBase(agentName='OPENAI',model="gpt-4o")
+    # print(agent.postMessage(messages))
+    # agent = LLMBase('CHATANYWHERE')
+    # print(agent.postMessage(messages))
+    agent = LLMBase('AIMASTER')
+    print(agent.postMessage(messages))

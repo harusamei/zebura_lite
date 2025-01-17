@@ -43,12 +43,16 @@ class GenActivity:
     # sql 可以是sql statement, or sql statement and parsed sql with {tables, columns, values}
     async def gen_activity(self, query: str, sql: Union[str, Dict[str, Any]]):
         resp = make_a_log('gen_activity')
+        if isinstance(sql, dict):
+            sql_statement = sql.get('sql','')
+        else:
+            sql_statement = sql
 
         all_checks = await self.checker.check_sql(sql)
         checkMsg = '\n'.join(all_checks['msg'])
         # 完美的SQL
         if all_checks['status'] == 'succ' and 'Warning' not in checkMsg:
-            resp['msg'] = self.refine_sql(sql)
+            resp['msg'] = self.refine_sql(sql_statement)
             return resp
 
         # 有EMTY 条件，需要修正
@@ -57,7 +61,7 @@ class GenActivity:
             all_checks['conds'] = conds_check
 
         all_checks['status'] = 'failed'
-        new_sql, note = await self.revise(sql, all_checks)
+        new_sql, note = await self.revise(sql_statement, all_checks)
         resp['note'] = note
         if new_sql is None:
             resp['status'] = 'failed'
@@ -67,7 +71,7 @@ class GenActivity:
         return resp
     
     # 优化SQL TODO
-    def refine_sql(self, sql):
+    def refine_sql(self, sql: str) -> str:
         if ';' not in sql:
             sql = sql+';'
         

@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Version 1.0.1]
 
 ### Added
-- 
+- 引入本地llama 90B 调用
 
 ### Changed
-- 
+- openai 调用更新
 
 ### Fixed
-- 由 index引起的bug in sql_checker.py
+-  .index()未找到匹配项时的处理
 
 ### Removed
 

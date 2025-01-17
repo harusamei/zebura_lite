@@ -1,7 +1,7 @@
 ###########################################
 # 与chatbot交互的接口, 内部是一个总控制器，负责调度各个模块最终完成DB查询，返回结果
 ############################################
-import sys,os,json, time, re
+import sys,os,json, time
 sys.path.insert(0, os.getcwd().lower())
 
 from tabulate import tabulate
@@ -337,8 +337,8 @@ async def apply(request):
     return answ
 
 async def main():
-    questions = ['How many restaurants in the dataset have a metascore above 80?',
-                 'Which restaurant has the highest rating?',
+    questions = ['How many movies in the dataset have a revenue greater than 100 million dollars?',
+                 'What is the average metascore of the movies in the dataset?',
                  '列出可以抽烟的餐厅']
        
     for msg in questions:

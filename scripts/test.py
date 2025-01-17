@@ -36,7 +36,7 @@ async def apply(request):
 
 
 if __name__ == "__main__":
-
+    # python scripts/test.py --csv_path training/imdb/testcases.csv
     parser = argparse.ArgumentParser(description='generate and save questions for current database')
     parser.add_argument('--csv_path', type=str, required=True, help='csv file of test data')
     args = parser.parse_args()

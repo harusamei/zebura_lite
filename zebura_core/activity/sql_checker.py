@@ -28,10 +28,13 @@ class CheckSQL:
     # 将错误信息和建议都放在msg列表中
     async def check_sql(self, sql:Union[str,Dict[str, Any]]) -> dict:
         all_checks = self.make_checkDict('succ')
+        sql_statement = ''
         # 解析SQL，获取check points
         if isinstance(sql,str):
+            sql_statement = sql
             slots = await self.ps.extract_sql(sql)
         elif isinstance(sql, dict) and 'sql' in sql:
+            sql_statement = sql['sql']
             slots = sql
             slots['status'] = 'succ'
         else:
@@ -48,7 +51,7 @@ class CheckSQL:
             all_checks['msg'].append(ckps['msg'])
             all_checks['status'] = 'failed'
         else:
-            all_checks = self.check_sql_with_db(sql, ckps)
+            all_checks = self.check_sql_with_db(sql_statement, ckps)
         
         return all_checks
     
