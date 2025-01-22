@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Version 1.0.1]
 
 ### Added
-- 引入本地llama 90B 调用
+- 引入本地llama 70B 调用
 
 ### Changed
 - openai 调用更新

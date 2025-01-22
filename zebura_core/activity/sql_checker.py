@@ -98,10 +98,9 @@ class CheckSQL:
         tmp14 = 'Error: error in your SQL syntax'                   # 语法错误
         
         tmp21 = "Suggestion: The table name most similar to '{table_name1}' in the database is '{table_name2}'"    # 相似表名
-        tmp22 = "Suggestion: The column name most similar to '{col_name1}' in the field list is '{col_name2}'"    # 相似列名
+        tmp22 = "Suggestion: The column name most similar to '{col_name1}' in the field list is '{col_name2}'"  # 相似列名
                                                                                                                 # 值语义扩展
-        tmp23 = "Suggestion: Values semantically similar to '{val1}', such as '{val2}', can be found in the '{col}' using fuzzy matching"
-        tmp24 = "Suggestion: '{val}' can be found in '{col}' using SQL's fuzzy matching"                            # 值模糊匹配
+        tmp24 = "Suggestion: '{val}' can be found in '{col}' using SQL's fuzzy matching"                        # 值模糊匹配
 
         all_checks = self.make_checkDict('succ')
         # ckps = {'status':'succ','tables': [], 'columns': [], 'conds': []}
@@ -161,7 +160,7 @@ class CheckSQL:
             elif tup[2] in ['FUZZY']:                        # 不完全一致则failed
                 all_checks['msg'].append(tmp13.format(val=val, col=field)) # 值不存在
                 if tup[2] == 'FUZZY':
-                    all_checks['msg'].append(tmp24.format(val1=val, col=field))
+                    all_checks['msg'].append(tmp24.format(val=val, col=field))
             elif tup[2] in ['EMTY']:
                 all_checks['msg'].append(tmp13.format(val=val, col=field)) # 值不存在
                  
@@ -232,37 +231,39 @@ class CheckSQL:
     
     # True 正确查询， False 错误查询， val 引号已经去掉
     # False, 'errmsg',''; True, val, 'EXCT' 完全匹配; True, val, 'FUZZY' 模糊匹配; True, val, 'EMTY' 模糊查询无值
-    def is_value_exist(self, table_name, col, val, ttype='varchar'):
+    # 只检查字符型的值 =, like
+    def is_value_exist(self, table_names, col, val):
 
-        quy1 = "SELECT {col} FROM {table_name} WHERE {col} = '{val}' LIMIT 1"
-        quy2 = "SELECT {col} FROM {table_name} WHERE {col} LIKE '%{val}%' LIMIT 1"
-        query1 = None
-        query2 = None
-        ttype = ttype.partition('(')[0]
-        if '%' not in val:
-            query1 = quy1.format(col=col, table_name=table_name, val=val)
-        if ttype.lower() in ['varchar', 'char', 'text']:                # 只字符串类型FUZZY 查询
-            val = val.replace('%', '')
-            query2 = quy2.format(col=col, table_name=table_name, val=val)
+        if isinstance(table_names, str):
+            table_names = [table_names]
         
-        check = [True, val, 'EXCT'] # 默认结果
-        # 完全匹配
-        if query1 is not None:
-            tup = self.execute_sql(query1)
-            if tup[0] is False:
-                return tup
-            elif tup[1] > 0:
-                return tuple(check)                     # (True, val, 'EXCT')              
-        # 模糊匹配
-        check = [True, f'%{val}%', 'FUZZY'] # 默认结果
-        if query2 is not None:
-            tup = self.execute_sql(query2)
-            if tup[0] is False:
-                return tup                              # (False, 'errmsg','')
-            elif tup[1] > 0:
-                return tuple(check)                     # (True, val, 'FUZZY')  
-                   
-        return [True, val, 'EMTY']                      # (True, val, 'EMTY')
+        for table_name in table_names:
+            check = [True, val, 'EXCT'] # 默认结果
+            tmpl1 = "SELECT {col} FROM {table_name} WHERE {col} = '{val}' LIMIT 1"
+            tmpl2 = "SELECT {col} FROM {table_name} WHERE {col} LIKE '%{val}%' LIMIT 1"
+            
+            query1 = tmpl1.format(col=col, table_name=table_name, val=val)
+            query2 = tmpl2.format(col=col, table_name=table_name, val=val)
+            
+            # 完全匹配
+            if query1 is not None:
+                tup = self.execute_sql(query1)
+                if tup[0] is False:
+                    check = tup
+                    break
+                elif tup[1] > 0:
+                    break                 # (True, val, 'EXCT')              
+            # 模糊匹配
+            check = [True, f'%{val}%', 'FUZZY'] # 默认结果
+            if query2 is not None:
+                tup = self.execute_sql(query2)
+                if tup[0] is False:
+                    check = tup
+                    break                     # (False, 'errmsg','')
+                elif tup[1] > 0:
+                    break                     # (True, val, 'FUZZY')     
+            check = [True, val, 'EMTY']       # (True, val, 'EMTY')
+        return check
 
     # 执行SQL
     def execute_sql(self, sql) -> tuple:
@@ -270,9 +271,9 @@ class CheckSQL:
         try:
             cursor.execute(sql)
             result = cursor.fetchall()
-            return (True, len(result), result)
+            return [True, len(result), result]
         except Exception as e:
-            return (False, f'ERROR: {e}','')
+            return [False, f'ERROR: {e}','']
         
     # 字符类value， 可能需要模糊和查询扩展
     # 返回值：(True, val, 'FUZZY') 有值，[True, val, 'EXCT'] excetly 完全匹配，[True, val, 'EMTY'] 无值
@@ -281,34 +282,42 @@ class CheckSQL:
     def check_value(self, table_name, col, val):
 
         cols = self.scha_loader.get_fieldInfo(table_name, col)
+        val_lang = cols['val_lang']
         if cols is None:
             return (False, f'ERROR 1054 (42S22): Unknown column {col}', '')
-        ty = cols['column_type'][0]
+        
+        tup = (True, val, 'EXCT')   # 默认值
+        ty = cols['column_type']
+        ty = ty.partition('(')[0]
+        # 非字符型值不检查
+        if ty not in  ['char', 'varchar', 'text']:
+            return tup
         val = val.strip('\'"')  # 去掉原始SQL值的引号
-        tup = self.is_value_exist(table_name, col, val,ttype=ty)
+        tup = self.is_value_exist(table_name, col, val)
+        tup.append(val_lang)
         return tup
 
     # 检查表是否存在
-    def has_column(self, table_name, col_name):
-        cols = self.scha_loader.get_column_nameList(table_name)
+    def has_column(self, table_names:list, col_name):
+        cols = self.scha_loader.get_column_nameList(table_names)
         if col_name not in cols:
             return (False, f'ERROR 1054 (42S22): Unknown column {col_name}')
         return (True, '')
            
     # vocs 字符类值的扩展vocabuary
     # (False, 'errmsg')  (True, val, 'EXCT')  (True, val, 'FUZZY')  (True, val, 'EMTY')
-    def check_expn(self, table_name, col, vocs):
+    def check_expn(self, table_names:list, col, vocs):
 
         exec_limit = const.D_EXPN_LIMIT
         choice = [random.randint(0, len(vocs) - 1) for _ in range(exec_limit)]
-        tup = self.has_column(table_name, col)
+        tup = self.has_column(table_names, col)
         if tup[0] is False:
             return (False, tup[1],'')
         
         check = (True, '', 'EMTY')
         for indx in choice:
             val = f'%{vocs[indx]}%'          # 不精确匹配，直接模糊查询
-            tup = self.is_value_exist(table_name, col, val)
+            tup = self.is_value_exist(table_names, col, val)
             if tup[2] == 'FUZZY':
                 return [True, val, 'EXPN']
         return check

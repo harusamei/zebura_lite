@@ -30,31 +30,55 @@ user: {query}
 Refined Standalone Question:
 </TASK>
 
-// 
+//
 <TASK: term_expansion>
-Please generate term expansions for a given set of terms. A table is provided with the terms, their corresponding categories, and the language to use for generating the expansion words. The methods for term expansion include synonyms, related terms, and translations.
-Ensure that the expansions are diverse to enrich the vocabulary. If a word has multiple meanings, focus solely on the terms related to its category and avoid exploring other meanings.
-=========================
-Examples of Input:
+### Task Description:
+Generate term expansions for the given terms based on the table below. Use methods such as synonyms, related terms, and translations to enrich the vocabulary while ensuring relevance to the specified category.
 
-| Term       | Category       |Output Language|
-|:-----------|:---------------|:--------------|
-| apple      | Brand          |English        |
-| mouse      | Product_name   |Chinese        |
-| innovation | Business       |Japanese       |
+### Requirements:
+- Expand terms using synonyms, related terms, and translations.
+- Ensure the generated JSON strictly follows the provided output structure.
+- Keep expansions relevant to the term’s specified category and language.
 
-=========================
-Examples of Output:
+**Input Example Table:**  
 
-| Term       | Term Expansions                                     |
-|:-----------|:----------------------------------------------------|
-| apple      | Macintosh, iPhone, iPad, tech company, Granny Smith |
-| mouse      | 鼠标, 电子鼠标, 笔记本鼠标, 无线鼠标, 光电鼠标 |
-| innovation | 革新, 発明, 進歩, アイデア, 創造, 技術革新 |
+| Term       | Category       | Output Language |  
+|:-----------|:---------------|:----------------|  
+| apple      | Brand          | English         |  
+| mouse      | Product_name   | Chinese         |  
+| innovation | Business       | Japanese        |  
 
-==========================
-NOTE: 
-- please strictly follow the output format of the example above.
+
+**Expected Output:**  
+
+```json
+[
+  {{
+    "term": "apple",
+    "category": "Brand",
+    "language": "English",
+    "expansions": ["MacBook", "iPhone", "iPad", "Apple Inc.", "AirPods", "Apple Watch"]
+  }},
+  {{
+    "term": "mouse",
+    "category": "Product_name",
+    "language": "Chinese",
+    "expansions": ["鼠标", "无线鼠标", "光学鼠标", "游戏鼠标", "蓝牙鼠标"]
+  }},
+  {{
+    "term": "innovation",
+    "category": "Business",
+    "language": "Japanese",
+    "expansions": ["イノベーション", "技術革新", "創意", "発明", "新興ビジネス"]
+  }}
+]
+
+```
+**Input Table:** 
+{term_table}
+
+**Output:**
+
 </TASK>
 
 // summary of database
@@ -239,42 +263,32 @@ ORDER BY order_date DESC;
 
 // recorrect the SQL query
 <TASK: sql_revise>
-You are an SQL programming expert specializing in diagnosing and correcting errors in SQL queries. Your task involves correcting SQL queries by addressing errors such as non-existent column or table names, JOIN operation issues, number or date format errors, and discrepancies in WHERE clause values. The corrected SQL should execute successfully while preserving the original query's intent. Below are the specific requirements:
-1.	Name Non-existence: Substitute non-existent field or table names with the closest match from the database schema in terms of lexical and syntactic similarity.
-2.	Join Errors: Resolve any errors arising from JOIN operations.
-3.	Number or Date Format Errors: Rectify any errors pertaining to the format of numbers or dates.
-4.	Value Issues in WHERE Condition: Replace non-existent values with suggested or semantically similar ones. 
-5. Column Issues in WHERE Condition: Replace the column in the current WHERE condition with a similar column from the database schema. 
-6. Use the 'LIKE' operator instead of '=' operator. 
-7.	Preserve Query Intent: Ensure that corrections do not alter the intended functionality of the query.
-8.	Output Format: Provide the corrected SQL query formatted as per the example.
-=======================
-An example of a corrected SQL query
+### Task Description:
+You are an SQL programming expert specializing in diagnosing and correcting errors in SQL queries. Your task involves correcting SQL queries by addressing errors such as non-existent column or table names, JOIN operation issues, number or date format errors, and discrepancies in WHERE clause values. The corrected SQL should execute successfully while preserving the original query's intent. 
 
-- Original SQL :
-SELECT e.employee_id, e.first_name, e.last_name, d.department_name FROM Employees e
+### Requirements:
+- Correct the SQL query by addressing the errors mentioned.
+- Use the 'LIKE' operator instead of '=' operator. 
+- Preserve Query Intent: Ensure that corrections do not alter the intended functionality of the query.
+- Please strictly follow the format of the output example.
 
-- Existing Errors：
-   Join Error: The query involves two tables that need to be joined using a JOIN clause.
-
-- Corrected SQL：
+### Output example：
 ```sql
 SELECT e.employee_id, e.first_name, e.last_name, d.department_name
 FROM Employees e
 JOIN Departments d ON e.department_id = d.department_id;
 ```
-=========================
-Follow-up inputs:
+### Input:
 - Database Schema:
 {dbSchema}
 
 - Original SQL：
 {ori_sql}
 
-- Existing Errors：
+- Existing issues:
 {err_msgs}
 
-- Corrected SQL:
+### Output:
 
 </TASK>
 

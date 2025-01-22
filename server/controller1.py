@@ -337,9 +337,11 @@ async def apply(request):
     return answ
 
 async def main():
-    questions = ['How many movies in the dataset have a revenue greater than 100 million dollars?',
-                 'What is the average metascore of the movies in the dataset?',
-                 '列出可以抽烟的餐厅']
+    questions = ['演员 Christian Bale, Heath Ledger, Aaron Eckhart, Michael Caine 出演的电影中，哪部电影的 Metascore 最高？',
+                '请告诉我盗梦空间的详细信息',
+                'How many movies in the dataset have a revenue greater than 100 million dollars?',
+                'What is the average metascore of the movies in the dataset?',
+                '列出可以抽烟的餐厅']
        
     for msg in questions:
         start = time.time()

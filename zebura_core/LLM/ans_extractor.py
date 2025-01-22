@@ -12,7 +12,6 @@ class AnsExtractor:
         self.result = {'status': 'succ', 'msg': ''}
         # 默认 parse_json
         self.tasks = {
-            'term_expansion': self.parse_expansion,
             'nl2sql': self.parse_nl2sql,
             'sql_revise': self.parse_sql_statement,
             'sql_details': self.parse_sql_statement,
@@ -112,56 +111,6 @@ class AnsExtractor:
             result['msg'] = llm_answer
             print(llm_answer)
         return result
-
-    # def parse_sql_analyzing(self, llm_answer) -> dict:
-    #     result = copy.copy(self.result)
-    #     result['msg'] = {'select': {}, 'from': {}, 'where': []}
-    #     tList, fList, wList = [], [], []
-    #     tArea = 'empty'
-    #     data = llm_answer.split('\n')
-    #     data =[d.strip() for d in data if d.strip()]
-        
-    #     for row in data:
-    #         if 'tables' in row.lower():
-    #             tArea = 'tables'
-    #             continue
-    #         if 'columns' in row.lower():
-    #             tArea = 'columns'
-    #             continue
-    #         if 'where conditions' in row.lower():
-    #             tArea = 'where'
-    #             continue
-    #         row = re.sub(r'^\W\s+', '', row)
-    #         if tArea == 'tables':
-    #             tList.append(row)
-    #         elif tArea == 'columns':
-    #             fList.append(row)
-    #         elif tArea == 'where':
-    #             wList.append(row)
-    #     for tb in tList:
-    #         if 'as' in tb.lower():
-    #             tb_name = re.split('as',tb,flags=re.IGNORECASE)[0].strip()
-    #             tb_alias = re.split('as',tb,flags=re.IGNORECASE)[1].strip()
-    #         else:
-    #             tb_name = tb
-    #             tb_alias = ''
-    #         result['msg']['from'][tb_name] = tb_alias
-
-    #     for col in fList:
-    #         if 'from' not in col.lower():
-    #             continue
-    #         col_name = col.split('from')[0].strip()
-    #         tb_name = col.split('from')[1].strip()
-    #         if 'aliased as' in tb_name.lower():
-    #             col_alias = re.split('aliased as',tb_name,flags=re.IGNORECASE)[1].strip()
-    #             tb_name = re.split('aliased as',tb_name,flags=re.IGNORECASE)[0].strip()
-    #         else:
-    #             col_alias = ''
-    #         result['msg']['select'][col_name] = {'tb_name': tb_name, 'alias': col_alias}
-        
-    #     result['msg']['where'] = wList
-
-    #     return result
 
     def parse_sql_statement(self, output) -> dict:
 
@@ -307,21 +256,8 @@ class AnsExtractor:
     
 if __name__ == "__main__":
     ans_extr = AnsExtractor()
-    llm_output = """```json
-                        [
-                            {
-                                "question": "哪位导演的电影评分最高？",
-                                "sql": "SELECT director, MAX(rating) AS max_rating FROM imdb_movie_dataset GROUP BY director ORDER BY max_rating DESC LIMIT 1;"
-                            },
-                            {
-                                "question": "哪位导演的电影数量最多？",
-                                "sql": "SELECT director, COUNT(*) AS movie_count FROM imdb_movie_dataset GROUP BY director ORDER BY movie_count DESC LIMIT 1;"
-                            },
-                            {
-                                "question": "哪位导演的电影评分最低？",
-                                "sql": "SELECT director, MIN(rating) AS min_rating FROM imdb_movie_dataset GROUP BY director ORDER BY min_rating ASC LIMIT 1;"
-                            },
-                        ]
+    llm_output = """### Output\n\n```json\n[\n  {\n    "term": "盗梦空间",\n    "category": "title",\n    "language": "English",\n    "expansions": ["Inception", "Dream Heist", "Mind Heist", "Dream Sharing", "Shared Dreaming"]\n  }\n]\n```\n\n### Explanation\n\nTo generate term expansions for the given term "盗梦空间" (which is the Chinese title for the movie "Inception"), we used a combination of translations, synonyms, and related terms.\n\n- **Translation**: The direct English translation of "盗梦空间" is "Inception".\n- **Synonyms**: "Dream Heist" and "Mind Heist" are synonyms for "Inception" as they convey the same idea of stealing or manipulating dreams.\n- **Related Terms**: "Dream Sharing" and "Shared Dreaming" are related terms that are relevant to the concept of "Inception" as they describe the idea of multiple people sharing a dream state.\n\nThese expansions are relevant to the term\'s specified category ("title") and language ("English").
+
                 """
     result1 = ans_extr.output_extr('default',llm_output)
     print(result1)

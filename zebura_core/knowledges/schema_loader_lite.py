@@ -3,7 +3,7 @@
 import sys,os,logging
 sys.path.insert(0, os.getcwd().lower())
 import pandas as pd
-from typing import Dict
+from typing import Dict, Union, List, Optional
 from settings import z_config
 import zebura_core.constants as const
 from zebura_core.utils.lang_detector import langname2code
@@ -77,11 +77,13 @@ class ScmaLoader:
         return self.tables.keys()
     
     # 表的所有column_name，None为所有表
-    def get_column_nameList(self, tableName=None) -> list:
-        if tableName not in self.tables:
+    def get_column_nameList(self, tableNames: Optional[Union[str, List[str]]] = None) -> list:
+        if tableNames is None:
             tbList = self.get_table_nameList()
+        elif isinstance(tableNames, str):
+            tbList = [tableNames]
         else:
-            tbList = [tableName]
+            tbList = tableNames
         columnList = []
         for tableName in tbList:
             tList = self.db_Info[tableName]['column_name']

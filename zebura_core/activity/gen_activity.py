@@ -55,10 +55,10 @@ class GenActivity:
             resp['msg'] = self.refine_sql(sql_statement)
             return resp
 
-        # 有EMTY 条件，需要修正
+        # 有EMTY 条件，values not found in column
         if all_checks['status'] == 'succ' and 'Warning' in checkMsg:
             conds_check = await self.refine_conds(all_checks)
-            all_checks['conds'] = conds_check
+            all_checks['values'] = conds_check
 
         all_checks['status'] = 'failed'
         new_sql, note = await self.revise(sql_statement, all_checks)
@@ -134,29 +134,40 @@ class GenActivity:
 
     # 生成check功能发现的错误信息和tables粒度的prompt, 用于LLM修正
     def gen_checkMsgs1(self, all_checks):
-        # 选择RAG需要的表
-        if 'status' in all_checks['tables']:
-            del all_checks['tables']['status']
-        if 'status' in all_checks['columns']:
-            del all_checks['columns']['status']
-        tb_names = self.checker.gen_rel_tables(all_checks)
-        tb_prompts = self.scha_loader.gen_limited_prompt(max_prompt_len, tb_names)
-
-        checkMsgs = {'msg': '', 'db_prompt': ''}
-        msg = '\n'.join(all_checks['msg'][:-1])
         
-        checkMsgs['msg'] = msg
+        checkMsgs = {'msg': '', 'db_prompt': ''}
+        all_checks1 = all_checks.copy()
+        if 'status' in all_checks1['tables']:
+            all_checks1['tables'].pop('status')
+        if 'status' in all_checks1['columns']:
+            all_checks1['columns'].pop('status')
+        if 'status' in all_checks1['values']:
+            all_checks1['values'].pop('status')
+
+        # 选择RAG需要的表
+        tb_names = self.checker.gen_rel_tables(all_checks1)
+        tb_prompts = self.scha_loader.gen_limited_prompt(max_prompt_len, tb_names)
         checkMsgs['db_prompt'] = '\n'.join(tb_prompts)
+        
+        msgs = [msg for msg in all_checks1['msg'] if 'Warning' in msg]
+        tmpl = "Suggestion: can find '{word2}' in column '{col}' that is semantically similar to '{word1}'"
+        for tkey,tval in all_checks1['values'].items():
+            col, word1 = tkey.split(',')
+            if 'EXPN' in tval:
+                word2 = tval[1]
+                msg = tmpl.format(word2=word2, col=col, word1=word1)
+                msgs.append(msg)
+        
+        checkMsgs['msg'] = '\n'.join(msgs)
+        
         return checkMsgs
 
     # check 不合格，需要revise, 返回 new_sql, hint
     async def revise(self, sql, all_checks) -> tuple:
         if all_checks['status'] == 'succ':
             return (sql, 'correct SQL')
-
-        # {'msg': '', 'db_struct': ''}
+        # {'msg': '', 'db_prompt': ''}
         checkMsgs = self.gen_checkMsgs1(all_checks)
-        
         # revise by LLM
         tmpl = self.prompter.tasks['sql_revise']
         orisql = sql
@@ -183,51 +194,53 @@ class GenActivity:
         return new_sql, msg
 
     # term expansion to refine the equations in Where
+    # 只能补救列存在，但值找不到的情况
     async def refine_conds(self, all_check):
-        conds_check = all_check['conds']
-        if conds_check['status'] == 'succ':
-            return conds_check
-
-        ni_words = {}  # need improve terms
-        for cond, v in conds_check.items():
-            if v == True:
-                continue
-            if v[2] in ['varchar', 'virtual_in', 'text']:
+        conds_check = all_check['values']
+        ni_words = []  # need improve terms, 列名OK，值找不到
+        for cond in set(conds_check.keys())-set(['status']):
+            v = conds_check[cond]
+            if v[2] in ['EMTY'] and len(v)>3:
                 col, word = cond.split(',')
                 word = word.strip('\'"')
-                ni_words[word] = [col, cond, v[3]]
+                ni_words.append([word,col, v[3]])  
 
         if len(ni_words) == 0:
             conds_check['status'] == 'succ'
             return conds_check
         
-        kterms = [ [key, val[0], val[2]] for key, val in ni_words.items() ]
-        kterms.insert(0, ['Keyword', 'Category', 'Output Language'])
-        query = self.prompter.gen_tabulate(kterms)
-        prompt = self.prompter.tasks['term_expansion']
-        result = await self.llm.ask_llm(query, prompt)
-        parsed = self.ans_extr.output_extr('term_expansion', result)
+        ni_words.insert(0, ['Term', 'Category', 'Output Language'])
+        term_table = self.prompter.gen_tabulate(ni_words)
+        tmpl = self.prompter.tasks['term_expansion']
+        query = tmpl.format(term_table=term_table)
+        answ = await self.llm.ask_llm(query, '')
+        result = self.ans_extr.output_extr('term_expansion', answ)
         
-        if parsed['status'] == 'failed':
+        if result['status'] == 'failed':
             conds_check['status'] == 'failed'
             return conds_check
         
-        new_terms = parsed['msg']
-        table = all_check['table'].keys()
-        tname = ' '.join(table).replace('status', '')
-        tname = tname.strip()
-        # 匹配忽略大小写
-        ni_words_lower = {key.lower(): value for key, value in ni_words.items()}
-        for word, voc in new_terms.items():
-            word = word.lower()
-            tItem = ni_words_lower.get(word, None)
-            if tItem is None:
-                logging.error(f"Error: {word} not in ni_words")
+        new_terms = result['msg']
+        tb_check = all_check['tables']
+        tbList = []
+        for tb_key in set(tb_check.keys())-set(['status']):
+            tbList.append(tb_check[tb_key])
+        # 匹配忽略大小写, ['Term', 'Category', 'Output Language']
+        ni_words_lower = [item[0] for item in ni_words]
+        for tDict in new_terms:
+            word = tDict.get('term', '')
+            if word not in ni_words_lower:
+                logging.info(f"incorrect term expansion: {word}")
                 continue
-            col, cond = tItem[0],tItem[1]
-            check = self.checker.check_expn(tname, col, voc)
-            lang = conds_check[cond][3]
-            check.append(lang)
+            else:
+                indx = ni_words_lower.index(word)
+                ni_w = ni_words[indx]
+                cond = f'{ni_w[1]},{ni_w[0]}'
+            
+            col, exps = tDict.get('category', ''), tDict.get('expansions', [])
+            check = self.checker.check_expn(tbList, col, exps)
+            # lang = conds_check[cond][3]
+            # check.append(lang)
             conds_check[cond] = check
         return conds_check
 
