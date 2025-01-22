@@ -282,10 +282,9 @@ class CheckSQL:
     def check_value(self, table_name, col, val):
 
         cols = self.scha_loader.get_fieldInfo(table_name, col)
-        val_lang = cols['val_lang']
         if cols is None:
             return (False, f'ERROR 1054 (42S22): Unknown column {col}', '')
-        
+        val_lang = cols['val_lang']
         tup = (True, val, 'EXCT')   # 默认值
         ty = cols['column_type']
         ty = ty.partition('(')[0]
