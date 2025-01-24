@@ -95,7 +95,8 @@ class AnsExtractor:
             aws = tlist[1]
         else:
             aws = llm_answer
-        aws = aws.rsplit('```', 1)[0]
+        # 只提取第一个json
+        aws = aws.split('```', 1)[0]
         aws = aws.strip()
         aws = re.sub(r',\s*([\]}])', r'\1', aws)    # trailing comma
         
@@ -256,8 +257,8 @@ class AnsExtractor:
     
 if __name__ == "__main__":
     ans_extr = AnsExtractor()
-    llm_output = """### Output\n\n```json\n[\n  {\n    "term": "盗梦空间",\n    "category": "title",\n    "language": "English",\n    "expansions": ["Inception", "Dream Heist", "Mind Heist", "Dream Sharing", "Shared Dreaming"]\n  }\n]\n```\n\n### Explanation\n\nTo generate term expansions for the given term "盗梦空间" (which is the Chinese title for the movie "Inception"), we used a combination of translations, synonyms, and related terms.\n\n- **Translation**: The direct English translation of "盗梦空间" is "Inception".\n- **Synonyms**: "Dream Heist" and "Mind Heist" are synonyms for "Inception" as they convey the same idea of stealing or manipulating dreams.\n- **Related Terms**: "Dream Sharing" and "Shared Dreaming" are related terms that are relevant to the concept of "Inception" as they describe the idea of multiple people sharing a dream state.\n\nThese expansions are relevant to the term\'s specified category ("title") and language ("English").
-
+    llm_output = """
+\n\n```json\n{\n  "sql": "SELECT * FROM imdb_movie_dataset WHERE director IN (SELECT actors FROM imdb_movie_dataset)",\n  "tables": [\n    {"name": "imdb_movie_dataset", "alias": "t1"}\n  ],\n  "columns": [\n    {"name": "*", "table": "imdb_movie_dataset"}\n  ],\n  "values": []\n}\n```\n\nHowever, the SQL query generated above may not be the most efficient way to solve this problem. A more efficient way would be to use the `IN` operator with a subquery that selects the `actors` column from the same table.\n\nAlternatively, you could use the `EXISTS` operator with a subquery that checks if the `director` exists in the `actors` column.\n\nHere\'s an updated version of the output:\n\n```json\n{\n  "sql": "SELECT * FROM imdb_movie_dataset t1 WHERE EXISTS (SELECT 1 FROM imdb_movie_dataset t2 WHERE t1.director = t2.actors)",\n  "tables": [\n    {"name": "imdb_movie_dataset", "alias": "t1"},\n    {"name": "imdb_movie_dataset", "alias": "t2"}\n  ],\n  "columns": [\n    {"name": "*", "table": "imdb_movie_dataset"}\n  ],\n  "values": []\n}\n```\n\nThis query will return all rows from the `imdb_movie_dataset` table where the `director` exists in the `actors` column.']
                 """
     result1 = ans_extr.output_extr('default',llm_output)
     print(result1)

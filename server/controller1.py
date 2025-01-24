@@ -337,13 +337,15 @@ async def apply(request):
     return answ
 
 async def main():
-    questions = ['演员 Christian Bale, Heath Ledger, Aaron Eckhart, Michael Caine 出演的电影中，哪部电影的 Metascore 最高？',
+    questions = ['有没有即是演员又是导演的',
+                '演员 Christian Bale, Heath Ledger, Aaron Eckhart, Michael Caine 出演的电影中，哪部电影的 Metascore 最高？',
                 '请告诉我盗梦空间的详细信息',
+                '这是一部什么类型的电影',
                 'How many movies in the dataset have a revenue greater than 100 million dollars?',
                 'What is the average metascore of the movies in the dataset?',
                 '列出可以抽烟的餐厅']
        
-    for msg in questions:
+    for msg in questions[:1]:
         start = time.time()
         request = make_a_req(msg)
         print(f"=============\nQuestion: {msg}")

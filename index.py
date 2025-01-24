@@ -17,9 +17,11 @@ from frontend.wiz_checkbox import rander_checkInfo
 import inspect,asyncio
 from server.controller1 import Controller
 from zebura_core.placeholder import make_a_req,make_a_log
+import time
+
 
 def render_sidebar():
-    print(f'render_sidebar')
+    print('render_sidebar')
     cont_top = st.container(height=65,border=False)
     cont_body = st.container(height=700,border=True)
     cont_buttom = st.container(height=80,border=True)
@@ -101,6 +103,8 @@ def show_talk(cont=None):
                             f'reasoning: {aws.get("reasoning","")}',
                             f'sql: {aws.get("sql","")}'
                     ]
+                    if aws.get('sql_result') is None:
+                        tList.append('no result in db')
                 st.write('ZEBURA: '+'\n'.join(tList))
             else:
                 st.write('ZEBURA: ')
@@ -115,13 +119,20 @@ def get_pyg_renderer(sql) -> "StreamlitRenderer":
     return StreamlitRenderer(df, kernel_computation=True, spec_io_mode="rw")
 
 @st.fragment()
+def render_answer(answ=None):
+    st.markdown(':tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:')
+    if answ is not None:
+        answ.pop('sql_result',None)
+        st.write(answ)
+
+@st.fragment()
 def render_pyg():
     sql = st.session_state['show_sql']
     if sql is None or sql == '' or 'ERR' in sql.upper():
         st.write('waiting for a valid sql')
         return
     
-    print(f'render_pygwalker')
+    print('render_pygwalker')
     renderer = get_pyg_renderer(sql)
     renderer.explorer()
 
@@ -148,13 +159,16 @@ async def apply():
     else:
         tb_names = [item['name'] for item in st.session_state['db_summary']['tables']]
     controller.set_rel_tbnames(tb_names)
-
+    st.write('I’m a bit slow. Please give me some time to think...')
+    start = time.time()
     while nextStep != controller.end:
+        st.write(f'current step: {nextStep.__name__}')
         if inspect.iscoroutinefunction(nextStep):
             await nextStep(pipeline)
         else:
             nextStep(pipeline)
-        nextStep = controller.get_next(pipeline)   
+        nextStep = controller.get_next(pipeline)
+        st.write(f'reached step {nextStep.__name__}, currently taking {time.time()-start} second: ')
     answ = await controller.genAnswer(pipeline)
     
     return answ
@@ -238,11 +252,14 @@ if doorkeeper.hasLogin():
     )
     # Apply the custom CSS class to the title
     st.markdown('<h1 class="custom-title">Unlock the Power of Your Data with Zebura</h1>', unsafe_allow_html=True)
-    tabs = st.tabs(["Get Started","Data View", "Database Info"])
+    tabs = st.tabs(["Zebura Answer","Data View", "Database Info"])
     with tabs[0]:
-        st.markdown('**first query your database with natural language**')
-        st.markdown('**then analyze the result with pygwalker**')
-        st.markdown(':tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:')
+        if len(st.session_state.messages) == 0:
+            render_answer()
+        else:
+            lastDiag = st.session_state.messages[-1]
+            answ = lastDiag.get('zebura',{})
+            render_answer(answ)    
     with tabs[1]:
         render_pyg()
     with tabs[2]:

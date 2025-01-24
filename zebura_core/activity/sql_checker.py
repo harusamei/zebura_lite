@@ -6,7 +6,7 @@ import zebura_core.constants as const
 from zebura_core.nltosql.schlinker import Sch_linking
 from zebura_core.knowledges.schema_loader_lite import ScmaLoader
 from zebura_core.utils.sqlparser1 import ParseSQL
-import logging, re, random, itertools,asyncio
+import logging, random, itertools,asyncio
 from typing import Union, Dict, Any
 from zebura_core.utils.conndb import connect
 
@@ -288,8 +288,9 @@ class CheckSQL:
         tup = (True, val, 'EXCT')   # 默认值
         ty = cols['column_type']
         ty = ty.partition('(')[0]
+        ty = ty.partition(' ')[0]
         # 非字符型值不检查
-        if ty not in  ['char', 'varchar', 'text']:
+        if ty not in  ['char', 'varchar', 'text','character']:
             return tup
         val = val.strip('\'"')  # 去掉原始SQL值的引号
         tup = self.is_value_exist(table_name, col, val)
