@@ -5,7 +5,7 @@
 通过Zebura提供的对话式数据分析技术，企业用户有望全面升级获取和分析数据的方式，轻松挖掘业务数据中蕴含着知识和决策的见解，推动企业在当今的答案经济（Answer Economy）中取得成功。
 
 使用zebura的数据分析的过程
-![zebura示意图](public/txt2sql.png)
+![zebura示意图](public/txt2sql.jpg)
 
 ## 主要特点  
 - **自然语言查询**：用户可直接用自然语言提问，Zebura 自动解析并执行数据查询任务。  

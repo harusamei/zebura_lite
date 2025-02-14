@@ -157,7 +157,7 @@
         <mxCell id="NPvgd6T0WxlYge50YjSt-23" value="获取数据库的schema和用户偏好，并基于语义搜索获取与当前提问相似的golden cases" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="109" y="542" width="470" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="NPvgd6T0WxlYge50YjSt-24" value="基于prompt 模板，将schema，golden cases和上下文组织为prompt，发送给LLM，由LLM生成SQL" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="NPvgd6T0WxlYge50YjSt-24" value="基于prompt 模板，将schema，golden cases和上下文组织为prompt，提示LLM生成SQL" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="109" y="576" width="470" height="30" as="geometry" />
         </mxCell>
         <mxCell id="NPvgd6T0WxlYge50YjSt-25" value="用SQL查询database，获得真实数据库结果" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -172,13 +172,10 @@
         <mxCell id="NPvgd6T0WxlYge50YjSt-29" value="5" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Times New Roman;fillColor=none;fontColor=default;labelBackgroundColor=none;" parent="1" vertex="1">
           <mxGeometry x="620" y="413.5" width="16" height="16" as="geometry" />
         </mxCell>
-        <mxCell id="NPvgd6T0WxlYge50YjSt-30" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(251, 251, 251); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;如果结果评估不正确，则由查询结果、修正建议，以及原始问题和schema重样组织prompt, 并发送给LLM生成修正的SQL&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="NPvgd6T0WxlYge50YjSt-30" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(251, 251, 251); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;如果结果评估不正确，则由查询结果、修正建议，以及原始问题和schema重样组织prompt, 并提示LLM重新生成SQL&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="109" y="667" width="490" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="NPvgd6T0WxlYge50YjSt-32" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" parent="1" vertex="1">
-          <mxGeometry x="60" y="538" width="600" height="172" as="geometry" />
-        </mxCell>
-        <mxCell id="6sGHBSzAUmie3uHnxWEB-1" value="" style="shape=datastore;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="6sGHBSzAUmie3uHnxWEB-1" value="" style="shape=datastore;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="76" y="313.5" width="30" height="21" as="geometry" />
         </mxCell>
       </root>
