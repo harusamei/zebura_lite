@@ -345,12 +345,12 @@ async def main():
                 'What is the average metascore of the movies in the dataset?',
                 '列出可以抽烟的餐厅']
        
-    for msg in questions[:1]:
+    for msg in questions:
         start = time.time()
         request = make_a_req(msg)
         print(f"=============\nQuestion: {msg}")
         resp = await apply(request)
-        print(f"Time: {time.time()-start}")
+        print(f"Time: {int(time.time()-start)}")
         for key in resp:
             if key in ['type','reasoning','question','sql','chat','error','suggestion','key_info']:
                 print(f"{key}: {resp[key]}")

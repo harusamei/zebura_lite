@@ -168,7 +168,7 @@ async def apply():
         else:
             nextStep(pipeline)
         nextStep = controller.get_next(pipeline)
-        st.write(f'reached step {nextStep.__name__}, currently taking {time.time()-start} second: ')
+        st.write(f'reached step {nextStep.__name__}, currently taking {int(time.time()-start)} second: ')
     answ = await controller.genAnswer(pipeline)
     
     return answ

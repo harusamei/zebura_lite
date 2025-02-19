@@ -15,7 +15,7 @@ class LLMBase:
     _is_initialized = False
     agentName = None
     # aimaster model = llama3.2-90B
-    def __init__(self,agentName:str,model="gpt-3.5-turbo-ca", temperature=0):
+    def __init__(self,agentName:str,model="gpt-3.5-turbo", temperature=0):
 
         if LLMBase.agentName != agentName:
             LLMBase._is_initialized = True
@@ -47,6 +47,8 @@ class LLMBase:
             LLMBase.model = self.model
             LLMBase.client = self.client
             LLMBase.headers = self.headers
+            LLMBase.url = self.url
+            LLMBase.session = self.session
             
             print(f"connecting LLM through {agentName}")
 

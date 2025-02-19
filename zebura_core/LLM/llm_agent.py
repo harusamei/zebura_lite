@@ -87,17 +87,25 @@ if __name__ == '__main__':
               "今天天气挺好的，你觉得呢？"]
     pg = Prompt_generator()
     tmpl = pg.get_prompt('nl_to_sql')
-    agent = LLMAgent('CHATANYWHERE', 'gpt-3.5-turbo')
-    start = time.time()
+    agents = [
+        {'name': 'AIMASTER', 'model': 'llama3.2-90B'},
+        {'name': 'OPENAI', 'model': 'gpt-4o'},
+        {'name': 'CHATANYWHERE', 'model': 'gpt-3.5-turbo'}
+    ]
+    for item in agents:
+        start = time.time()
+        query = tmpl.format(db_info='', examples='', question=questions[0])
+        agent = LLMAgent(agentName=item['name'], model=item['model'])
+        answers = asyncio.run(agent.ask_llm(query, ''))
+        print(answers)
+        print(f"single query time: {time.time() - start}")
 
-    query = tmpl.format(db_info='', examples='', question=questions[0])
-    answers = asyncio.run(agent.ask_llm(query, ''))
-    print(answers)
-    print(f"single query time: {time.time() - start}")
-
-    prompts = [tmpl.format(db_info='', examples='', question=question) for question in questions]
-    start = time.time()
-    results = asyncio.run(agent.ask_llm_list(questions, prompts))
-    for i, result in enumerate(results):
-        print(f"query:{questions[i]}\n{result}")
-    print(f"batch query time: {time.time() - start}")
+    for item in agents:
+        agent = LLMAgent(agentName=item['name'], model=item['model'])
+        prompts = [tmpl.format(db_info='', examples='', question=question) for question in questions]
+        start = time.time()
+        results = asyncio.run(agent.ask_llm_list(questions, prompts))
+        for i, result in enumerate(results):
+            print(f"query:{questions[i]}\n{result}")
+        print(f"batch query time: {int(time.time() - start)}")
+    
