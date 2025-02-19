@@ -1,7 +1,7 @@
 import sys,os, asyncio  
 sys.path.insert(0, os.getcwd())
 from settings import z_config
-from zebura_core.LLM.llm_base import LLMBase
+from zebura_core.LLM.llm_base1 import LLMBase
 import logging
 
 class LLMAgent(LLMBase):
@@ -12,7 +12,7 @@ class LLMAgent(LLMBase):
             agentName = z_config['Training', 'llm']
             model = z_config['Training', 'llm_model']
         if model is None or len(model) == 0:
-            model = "gpt-3.5-turbo-ca"
+            model = "gpt-3.5-turbo"
         try:
             super().__init__(agentName, model)
         except Exception as e:
