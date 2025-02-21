@@ -8,22 +8,23 @@ from zebura_core.knowledges.schema_loader_lite import ScmaLoader
 from zebura_core.utils.sqlparser1 import ParseSQL
 import logging, random, itertools,asyncio
 from typing import Union, Dict, Any
-from zebura_core.utils.conndb import connect
+from zebura_core.utils.conndb1 import connect, db_execute
 
 
 class CheckSQL:
 
     def __init__(self, dbServer, chat_lang='english'):
         self.db_name = dbServer['db_name']
-        self.cnx = connect(dbServer)
-        if self.cnx is None:
+        self.db_eng = connect(dbServer)
+        if self.db_eng is None:
             raise ValueError("Database connection failed")
         
         self.scha_loader = ScmaLoader(self.db_name, chat_lang)
         self.sl = Sch_linking(const.D_SIMILITY_THRESHOLD)
         self.ps = ParseSQL()
         logging.info("CheckSQL init done")
-        
+
+
     # 主功能, 值只检查=, like，不进行值的扩展
     # 将错误信息和建议都放在msg列表中
     async def check_sql(self, sql:Union[str,Dict[str, Any]]) -> dict:
@@ -267,10 +268,8 @@ class CheckSQL:
 
     # 执行SQL
     def execute_sql(self, sql) -> tuple:
-        cursor = self.cnx.cursor()
         try:
-            cursor.execute(sql)
-            result = cursor.fetchall()
+            result = db_execute(self.db_eng, sql)
             return [True, len(result), result]
         except Exception as e:
             return [False, f'ERROR: {e}','']
@@ -370,5 +369,12 @@ if __name__ == "__main__":
             'user':'root',
             'pwd':'zebura'
         }
-
+    dbServer = {
+        'db_name':'imdb',
+        'db_type':'postgres',
+        'host':'localhost',
+        'port':5432,
+        'user':'postgres',
+        'pwd':'zebura'
+    }
     asyncio.run(test(dbServer,sqlList))

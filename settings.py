@@ -31,7 +31,7 @@ class Settings:
         sys.path= list(set(path.lower() for path in sys.path))
         # logging level
         log_level_str = self.config.get('Logging', 'level')
-        log_level = getattr(logging, log_level_str.upper(), logging.INFO)
+        log_level = getattr(logging, log_level_str.upper(), logging.ERROR)
         #即保存到文件，又打印到屏幕
         logging.basicConfig(level=log_level, format='%(levelname)s - %(message)s',
                             handlers=[

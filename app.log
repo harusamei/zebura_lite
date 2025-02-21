@@ -77,3 +77,11 @@ Traceback (most recent call last):
   File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\ssl.py", line 1132, in read
     return self._sslobj.read(len)
 KeyboardInterrupt
+ERROR - Failed to close session: (pymysql.err.InterfaceError) (0, '')
+(Background on this error at: https://sqlalche.me/e/14/rvf5)
+ERROR - Failed to close session: (pymysql.err.InterfaceError) (0, '')
+(Background on this error at: https://sqlalche.me/e/14/rvf5)
+ERROR - Failed to close session: (pymysql.err.InterfaceError) (0, '')
+(Background on this error at: https://sqlalche.me/e/14/rvf5)
+ERROR - logging message
+CRITICAL - logging message

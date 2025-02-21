@@ -2,12 +2,11 @@
 import sys,os
 sys.path.insert(0, os.getcwd().lower())
 from settings import z_config
-from zebura_core.utils.conndb import connect, get_engine
+from zebura_core.utils.conndb1 import connect, db_execute
 import logging
 import pandas as pd
 from zebura_core.placeholder import make_a_log
 from placeholder import make_dbServer
-from sqlalchemy import create_engine
 
 
 class ExeActivity:
@@ -18,12 +17,13 @@ class ExeActivity:
         dbServer = make_dbServer(serverName)
         self.db_type = dbServer['db_type']
         dbServer['db_name'] = self.db_name
-        self.cnx = connect(dbServer)
-        if self.cnx is None:
+        self.db_eng = connect(dbServer)
+        if self.db_eng is None:
             raise ValueError("Database connection failed")
-        self.engine = get_engine(dbServer)
-        logging.info(f"ExeActivity init success")
+        
+        logging.info("ExeActivity init success")
 
+    
     def checkDB( self, db_name=None ) -> str:  # failed, succ
 
         if db_name is None:
@@ -37,11 +37,7 @@ class ExeActivity:
             print(f"ERR: {self.db_type} not supported")
             return "failed"
         
-        cursor = self.cnx.cursor()
-        cursor.execute(sql_query)
-        result = cursor.fetchone()
-        cursor.close()
-
+        result = db_execute(self.db_eng, sql_query)
         if not result:
             print(f"{db_name} not found, create it first")
             return "failed"
@@ -52,10 +48,7 @@ class ExeActivity:
         answer = make_a_log("exeSQL")
         answer["format"] = "dict"
         try:
-            cursor = self.cnx.cursor()
-            cursor.execute(sql)
-            result = cursor.fetchall()
-            cursor.close()
+            result = db_execute(self.db_eng, sql)
             if len(result) > 0:
                 answer["msg"] = result
             else:
@@ -71,7 +64,7 @@ class ExeActivity:
     # database 与 dataframe直接关联
     def sql2df(self, sql):
         try:
-            with self.engine.connect() as conn:
+            with self.db_eng.connect() as conn:
                 df = pd.read_sql_query(
                     sql=sql,
                     con=conn.connection
@@ -80,7 +73,6 @@ class ExeActivity:
             print(f"Error: {e}")
             df = pd.DataFrame()
         return df
-    
 
 if __name__ == "__main__":
     

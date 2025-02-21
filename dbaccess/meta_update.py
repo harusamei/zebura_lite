@@ -5,7 +5,7 @@ sys.path.insert(0, os.getcwd().lower())
 from settings import z_config
 import zebura_core.constants as const
 from zebura_core.placeholder import make_dbServer
-from zebura_core.utils.conndb import connect
+from discard.conndb import connect
 from dbaccess.csv2sql import CSV2SQL
 import pandas as pd
 

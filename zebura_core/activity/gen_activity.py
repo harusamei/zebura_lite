@@ -11,8 +11,7 @@ from zebura_core.LLM.prompt_loader1 import Prompt_generator
 from zebura_core.knowledges.schema_loader_lite import ScmaLoader
 from zebura_core.LLM.ans_extractor import AnsExtractor
 from zebura_core.LLM.llm_agent import LLMAgent
-from zebura_core.activity.sql_checker import CheckSQL
-from zebura_core.utils.conndb import connect
+from zebura_core.activity.sql_checker1 import CheckSQL
 import logging,asyncio
 from typing import Union, Dict, Any
 

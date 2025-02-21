@@ -9,7 +9,7 @@ import logging,asyncio,inspect
 from settings import z_config
 from zebura_core.nltosql.question2sql import Question2SQL
 from zebura_core.answer_refiner.aggregate import Aggregate
-from zebura_core.activity.exe_activity import ExeActivity
+from zebura_core.activity.exe_activity1 import ExeActivity
 from zebura_core.activity.gen_activity import GenActivity
 from zebura_core.LLM.llm_agent import LLMAgent
 from zebura_core.placeholder import make_a_log, make_a_req
@@ -337,7 +337,8 @@ async def apply(request):
     return answ
 
 async def main():
-    questions = ['有没有即是演员又是导演的',
+    questions = ['排名前十的电影',
+                 '有没有即是演员又是导演的',
                 '演员 Christian Bale, Heath Ledger, Aaron Eckhart, Michael Caine 出演的电影中，哪部电影的 Metascore 最高？',
                 '请告诉我盗梦空间的详细信息',
                 '这是一部什么类型的电影',

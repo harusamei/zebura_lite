@@ -8,7 +8,7 @@ sys.path.insert(0, os.getcwd().lower())
 import asyncio
 import logging
 import pandas as pd
-from zebura_core.utils.conndb import connect
+from discard.conndb import connect
 from zebura_core.utils.lang_detector import detect_language
 from dbaccess.scma_gen import ScmaGen
 from dbaccess.postgres.ops_p import DBpops

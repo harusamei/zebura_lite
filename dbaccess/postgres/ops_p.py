@@ -1,7 +1,7 @@
 # 对mysql的一些操作进行了封装，包括创建数据库，将DF表保存入RDB, drop 原有表等操作
 import sys,os
 sys.path.insert(0, os.getcwd().lower())
-from zebura_core.utils.conndb import connect
+from discard.conndb import connect
 import pandas as pd
 
 # postgresql db operator
