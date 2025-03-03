@@ -124,7 +124,7 @@ class DBpops:
         else:
             return "character varying"
          
-    def get_tb_schema(self,tb_name):
+    def show_tb_schema(self,tb_name):
         query = f"""
             SELECT *
             FROM INFORMATION_SCHEMA.COLUMNS
@@ -163,7 +163,7 @@ class DBpops:
                 tdict[k] = v
         return tdict
     
-    def get_random_rows(self, table_name, n=5):
+    def show_randow_rows(self, table_name, n=5):
         cursor = self.cursor
         query = f"SELECT * FROM {table_name} ORDER BY RANDOM() LIMIT {n}"
         cursor.execute(query)

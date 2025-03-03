@@ -9,6 +9,7 @@ def get_engine(dbServer):
 
     db_type = dbServer.get('db_type')
     db_name = dbServer.get('db_name')
+    db_name = db_name.lower()
     if db_type is None or db_name is None:
         print("ERR: db_type|db_name cannot be None")
         return None
@@ -32,9 +33,10 @@ def get_engine(dbServer):
         'pool_size': 10,          # 最大连接数
         'max_overflow': 5,        # 额外连接
         'pool_recycle': 1800,     # 每 30 分钟回收连接，防止 `wait_timeout`
-        'pool_pre_ping': True     # 启用 `ping` 机制检测连接
+        'pool_pre_ping': True     # 启用 `ping` 机制检测连接·
     }
     engine = create_engine(db_uri, **pool_params)
+
     return engine
 
 def make_dbSession(engine):

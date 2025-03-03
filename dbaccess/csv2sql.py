@@ -103,7 +103,7 @@ class CSV2SQL:
     def saveInDB(self, df, tb_name):
         print(f"Saving {tb_name} to DB")
         cursor = self.cnx.cursor()
-        sxm_df = self.ops.get_tb_schema(tb_name)
+        sxm_df = self.ops.show_tb_schema(tb_name)
 
         headers = sxm_df['column_name'].tolist()
         query = self.ops.get_insert_query(tb_name, headers)

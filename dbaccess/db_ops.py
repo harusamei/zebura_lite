@@ -83,14 +83,14 @@ class DBops:
             sql = sql.replace('"', '`')
         return sql
         
-    def get_tb_schema(self, tb_name):
-        return self.ops.get_tb_schema(tb_name)
+    def show_tb_schema(self, tb_name):
+        return self.ops.show_tb_schema(tb_name)
     
     def refine_data(self,sxm_df, data):
         return self.ops.refine_data(sxm_df, data)
     
-    def get_random_rows(self, table_name, n=5):
-        return self.ops.get_random_rows(table_name, n)
+    def show_randow_rows(self, table_name, n=5):
+        return self.ops.show_randow_rows(table_name, n)
     
 if __name__ == '__main__':
     from settings import z_config

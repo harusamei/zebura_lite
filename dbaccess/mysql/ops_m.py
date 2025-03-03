@@ -118,7 +118,7 @@ class DBmops:
         else:
             return "TEXT"
         
-    def get_tb_schema(self,table_name):
+    def show_tb_schema(self,table_name):
         curr_db = self.show_current_database()
         query = f"""
             SELECT *
@@ -159,7 +159,7 @@ class DBmops:
                 tdict[k] = v
         return tdict
 
-    def get_random_rows(self, table_name, n=5):
+    def show_randow_rows(self, table_name, n=5):
         cursor = self.cursor
         query = f"SELECT * FROM {table_name} ORDER BY RAND() LIMIT {n}"
         cursor.execute(query)
