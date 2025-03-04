@@ -1,0 +1,45 @@
+{
+    "_version":1.0,
+    "_description": "SQL query equivalents for MySQL, PostgreSQL, and BigQuery",
+    "show_databases": {
+      "mysql": "SHOW DATABASES",
+      "postgres": "SELECT datname FROM pg_database",
+      "bigquery": "SELECT schema_name FROM INFORMATION_SCHEMA.SCHEMATA"
+    },
+    "show_tables": {
+      "mysql": "SHOW TABLES",
+      "postgres": "SELECT tablename FROM pg_tables WHERE schemaname = 'public'",
+      "bigquery": "SELECT table_name FROM `{project_id}.{dataset_id}.INFORMATION_SCHEMA.TABLES`"
+    },
+    "show_columns": {
+      "mysql": "SHOW COLUMNS FROM {table_name}",
+      "postgres": "SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'",
+      "bigquery": "SELECT column_name FROM `{project_id}.{dataset_id}.INFORMATION_SCHEMA.COLUMNS` WHERE table_name = '{table_name}'"
+    },
+    "count_items": {
+      "mysql": "SELECT COUNT(*) FROM {table_name}",
+      "postgres": "SELECT COUNT(*) FROM {table_name}",
+      "bigquery": "SELECT COUNT(*) FROM `{project_id}.{dataset_id}.{table_name}`"
+    },
+    "show_randow_rows": {
+      "mysql": "SELECT * FROM {table_name} ORDER BY RAND() LIMIT {n}",
+      "postgres": "SELECT * FROM {table_name} ORDER BY RANDOM() LIMIT {n}",
+      "bigquery": "SELECT * FROM `{project_id}.{dataset_id}.{table_name}` ORDER BY RAND() LIMIT {n}"
+    },
+    "show_tb_schema": {
+      "mysql": "DESCRIBE {tb_name}",
+      "postgres": "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{tb_name}'",
+      "bigquery": "SELECT column_name, data_type FROM `{project_id}.{dataset_id}.INFORMATION_SCHEMA.COLUMNS` WHERE table_name = '{tb_name}'"
+    },
+    "table_exist": {
+      "mysql": "SHOW TABLES LIKE '{table_name}'",
+      "postgres": "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{table_name}')",
+      "bigquery": "SELECT COUNT(*) FROM `{project_id}.{dataset_id}.INFORMATION_SCHEMA.TABLES` WHERE table_name = '{table_name}'"
+    },
+    "show_current_database": {
+      "mysql": "SELECT DATABASE()",
+      "postgres": "SELECT current_database()",
+      "bigquery": "SELECT @@dataset_id"
+    }
+  }
+  

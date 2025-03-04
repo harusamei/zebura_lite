@@ -1,0 +1,15 @@
+{
+    "_version":1.0,
+    "_description": "SQL dialect for MySQL, PostgreSQL, and BigQuery",
+    "insert": {
+      "mysql": "INSERT INTO {table_name} ({headers}) VALUES ({values})",
+      "postgres": "INSERT INTO {table_name} ({headers}) VALUES ({values})",
+      "bigquery": "INSERT INTO `{project_id}.{dataset_id}.{table_name}` ({headers}) VALUES ({values})"
+    },
+    "create_table": {
+      "mysql": "CREATE TABLE {tb_name}(\n{cols}{primary_clause}\n)",
+      "postgres": "CREATE TABLE {tb_name}(\n{cols}{primary_clause}\n)",
+      "bigquery": "CREATE TABLE `{project_id}.{dataset_id}.{tb_name}` (\n{cols}{primary_clause}\n)"
+    }
+  }
+  
