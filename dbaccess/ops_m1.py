@@ -66,34 +66,37 @@ def insert_data(engine,tb_name, col_names, rows):
     ph_vals ='%s, '*len(header)             # placeholder for values
     ph_vals = ph_vals[:-2]
     query = f"INSERT INTO {tb_name} ({fields}) VALUES ({ph_vals})"
-    print(f"INFO: {query}")
     try:
         with engine.connect() as connection:
             connection.execute(query, rows)
     except Exception as e:
         print(f"Error: {e}")
+        print(f"INFO: {query}")
         return False
     return True
 
-
-def refine_data(sxm_df, data):
-    tdict = {}
-    for k, v in data.items():
-        tdf = sxm_df[sxm_df['column_name'] == k]['data_type']
-        tdf = tdf.str.lower()
-        if tdf.empty:
-            return None
-        ty = tdf.iloc[0].lower()
-        if pd.isna(v) or v == '' or v == 'N/A':
-            tdict[k] = None
-        elif ty in ['smallint', 'mediumint', 'int', 'integer', 'bigint']:
-            tdict[k] = int(v)
-        elif ty in ['float', 'double', 'decimal', 'numeric']:
-            tdict[k] = float(v)
-        elif ty == 'tinyint':
-            tdict[k] = bool(v)
-        elif 'datetime' in ty:
-            tdict[k] = pd.to_datetime(v)
-        else:
-            tdict[k] = v
-    return tdict
+# 列出主键列
+# 返回例: [('rank',), ('title',)]
+def show_primary_key(engine, tb_name) -> list:
+    query = f"""
+            SELECT 
+                kcu.column_name
+            FROM 
+                information_schema.table_constraints tc
+                JOIN information_schema.key_column_usage kcu
+                ON tc.constraint_name = kcu.constraint_name
+                AND tc.table_schema = kcu.table_schema
+            WHERE 
+                tc.constraint_type = 'PRIMARY KEY' 
+                AND tc.table_name = '{tb_name}'
+                AND tc.table_schema = DATABASE();
+    """
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(query)
+            return result.fetchall()
+    except Exception as e:
+        print(f"Error: {e}")
+        print(f"INFO: {query}")
+        return None
+    

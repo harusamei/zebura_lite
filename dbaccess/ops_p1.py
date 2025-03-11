@@ -61,13 +61,12 @@ def insert_data(engine,tb_name, col_names, tuples):
     ph_vals ='%s, '*len(header)             # placeholder for values
     ph_vals = ph_vals[:-2]
     query = f"INSERT INTO {tb_name}({fields}) VALUES ({ph_vals})"
-    print(f"INFO: {query}")
-    #rows = (1, 'Guardians of the Galaxy', 'Action,Adventure,Sci-Fi', 'A group of intergalactic criminals are forced to work together to stop a fanatical warrior from taking control of the universe.', 'James Gunn', 'Chris Pratt, Vin Diesel, Bradley Cooper', 2014, 121, 8.1, 757074, 333.13, 76)
     try:
         with engine.connect() as connection:
             connection.execute(query, tuples)
     except Exception as e:
         print(f"Error: {e}")
+        print(f"INFO: {query}")
         return False
     return True
 
@@ -80,3 +79,23 @@ def drop_table(engine, table_name):
         print(f"Error: {e}")
         return None
     return True
+
+# 列出主键列
+def show_primary_key(engine, tb_name):
+    query = f"""
+            SELECT kcu.column_name
+            FROM information_schema.table_constraints tc
+            JOIN information_schema.key_column_usage kcu
+            ON tc.constraint_name = kcu.constraint_name
+            AND tc.table_name = kcu.table_name
+            WHERE tc.constraint_type = 'PRIMARY KEY'
+                AND tc.table_name = '{tb_name}';
+    """
+    try:
+        return db_execute(engine, query)
+    except Exception as e:
+        print(f"Error: {e}")
+        print(f"INFO: {query}")
+        return None
+    
+

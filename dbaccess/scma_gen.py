@@ -229,7 +229,11 @@ class ScmaGen:
 # Example usage
 if __name__ == '__main__':
 
-    dbServer = {'db_name':'imdb', 'db_type':'unknown'}
+    from zebura_core.placeholder import make_dbServer
+    s_name = 'Postgres1'
+    dbServer = make_dbServer(s_name)
+    dbServer['db_name'] = 'imdb1'
+   
     mg = ScmaGen(dbServer,'chinese')
     # just a BVT, output empty metadata.xlsx 
     # 创建存放文件的目录

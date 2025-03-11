@@ -27,13 +27,13 @@
       "bigquery": "SELECT * FROM `{project_id}.{dataset_id}.{table_name}` ORDER BY RAND() LIMIT {n}"
     },
     "show_tb_schema": {
-      "mysql": "DESCRIBE {tb_name}",
-      "postgres": "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{tb_name}'",
-      "bigquery": "SELECT column_name, data_type FROM `{project_id}.{dataset_id}.INFORMATION_SCHEMA.COLUMNS` WHERE table_name = '{tb_name}'"
+        "mysql": "DESCRIBE {tb_name}",
+        "postgres": "SELECT column_name, data_type, character_maximum_length, numeric_precision, is_nullable, column_default FROM information_schema.columns WHERE table_name = '{tb_name}' AND table_schema = 'public';",
+        "bigquery": "SELECT column_name, data_type FROM `{project_id}.{dataset_id}.INFORMATION_SCHEMA.COLUMNS` WHERE table_name = '{tb_name}';"
     },
     "table_exist": {
       "mysql": "SHOW TABLES LIKE '{table_name}'",
-      "postgres": "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{table_name}')",
+      "postgres": "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename LIKE '{table_name}'",
       "bigquery": "SELECT COUNT(*) FROM `{project_id}.{dataset_id}.INFORMATION_SCHEMA.TABLES` WHERE table_name = '{table_name}'"
     },
     "show_current_database": {

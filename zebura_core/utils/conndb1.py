@@ -80,7 +80,7 @@ def db_execute(engine,sql_query):
     try:
         session = make_dbSession(engine)
         # 使用 text 函数执行原生 SQL 查询
-        result = session.execute(text(sql_query)).fetchall()
+        result = session.execute(text(sql_query))
         session.close()
         return result
     except OperationalError as e:

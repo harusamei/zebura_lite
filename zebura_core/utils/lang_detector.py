@@ -1,4 +1,4 @@
-from langdetect import detect
+from langdetect import detect, detect_langs
 
 language_map = {
     'en': 'English',
@@ -13,7 +13,10 @@ language_map = {
     'SV': 'Swedish',
     'ja': 'Japanese',
     'zh': 'Chinese',
-    'zh-cn': 'Chinese'
+    'zh-cn': 'Chinese',
+    'da': 'Danish',
+    'fi': 'Finnish',
+    'cy': 'Welsh',
     # 添加更多语言映射
 }
 def langcode2name(langcode):
@@ -30,27 +33,24 @@ def langname2code(langname):
 
 def detect_language(text: str) -> str:
     try:
-        lang = detect(text)
-        if lang in language_map:
-            return language_map[lang]
-        else:
-            return lang
+        result = detect_langs(text)   # probabilities
+        langCode = result[0].lang
+        prob = result[0].prob
+        if prob > 0.9:
+            return langCode
+        return None
     except:
         return None
 
 
 # Example usage
 if __name__ == '__main__':
-    lang =detect_language("abie 1-851-8n, i@@@@") # 'en'
-    print(lang)
-    print(langname2code(lang))
-    lang =detect_language("これはテストです") # 'ja'
-    print(lang)
-    print(langname2code(lang))
-    lang =detect_language("这是一个测试test") # 'zh-cn'
-    print(lang)
-    print(langname2code(lang))
-    lang =detect_language("decFondeoInicial, decImporteAbonoClte, decImporteCancel, decImporteDevol, decImporteDevolTC, decImporteImpuestos") # 'zh-cn'
-    print(lang)
-    code = langname2code(lang)
-    print(langcode2name(code))
+    sents = ['This is a pen', 'これはペンです', '这是一个苹果', 'これはテストです', '这是一个测试test', 'decFondeoInicial, decImporteAbonoClte, decImporteCancel, decImporteDevol, decImporteDevolTC, decImporteImpuestos']
+    for sent in sents:
+        lang = detect_language(sent)
+        if lang is not None:
+            langName = langcode2name(lang)
+            print(f"{sent} : {langName}")
+            print(f"{langName} : {langname2code(langName)}")
+        else:
+            print(f"{sent} : Language detection failed")

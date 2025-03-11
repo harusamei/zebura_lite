@@ -89,33 +89,83 @@ Input:
 {db_info}
 </TASK>
 
-// grouping database tables
+// grouping and tagging database tables
 <TASK: tb_grouping>
-You have a database named {db_name}, which contains {table_count} tables. The table names, descriptions, and schemas are provided below. Based on this information, group the tables by similar functionality, placing tables with related purposes into the same group. You are required to assign group name and provide a brief description for each group in {chat_lang}.
+### Task Description:
+给定一个名为{db_name}的数据库，其中存放着一些数据表。 每个表包含表名及其字段列表。 请根据这些信息，对数据表进行分组，使保存相似信息或有相似应用场景的表归为一组，并且对每个表提供2-3个简要标签，概括该表的核心功能或用途。最终输出分组信息、组的简要描述，以及每个表的标签。
 
-Requirements:
-The number of groups must not exceed 12.
-Strictly follow the output format.
-=========================
-Output in JSON format：
-```json
-[
-  {{
-    "group_name": "group_name1",
-    "group_description": "Description of the group 1.",
-    "included_tables": ["table1", "table2", "table3"]
-  }},
-  {{
-    "group_name": "group_name2",
-    "group_description": "Description of the group 2.",
-    "included_tables": ["table4", "table5"]
-  }}
-]
-```
-=========================
-Input:
+### 数据库表信息：
 {tables_info}
 
+### 要求：
+分组：识别表的功能或应用场景，并合理分类。
+标签：为每个表提供2-3个简要标签，概括该表的核心功能或用途。
+输出：严格按照提供的输出格式，输出JSON格式的分组信息和标签信息。
+
+### Output example:
+```json
+{{
+    "groups": [
+        {{
+            "group_name": "group1",
+            "description": "Description of group 1.",
+            "included_tables": ["table1", "table2", "table3"]
+        }},
+        {{
+            "group_name": "group2",
+            "description": "Description of group 2.",
+            "included_tables": ["table4", "table5"]
+        }}
+    ],
+    "tables": [
+        {{
+            "table_name": "table1",
+            "tags": ["tag1", "tag2", "tag3"]
+        }},
+        {{
+            "table_name": "table2",
+            "tags": ["tag2", "tag4"]
+        }},
+        {{
+            "table_name": "table3",
+            "tags": ["tag5", "tag6"]
+        }}
+    ]
+}}
+```
+</TASK>
+
+// 名称或类别的归一化
+<TASK: cat_normalization>
+### Task Description:
+给定一组类别名称及可选的类别描述，请将语义或功能相同的类别整合到相同的标准类别下。如果提供了描述，请结合描述信息进行更精准的归类。整合后的标准类别小于{max_cats}个。
+
+### Requirements:
+- 每个标准类别下至少包含一个原始类别。
+
+### Input:
+{catInfo}
+
+### Output:
+```json
+[
+    {{
+        "standard_category": "standard_category1",
+        "original_categories": ["category1", "category2"],
+        "description": "" //填入具体的描述信息
+    }},
+    {{
+        "standard_category": "standard_category2",
+        "original_categories": ["category3", "category4"],
+        "description": ""     //填入具体的描述信息
+    }},
+    {{
+        "standard_category": "standard_category3",
+        "original_categories": ["category5"],
+        "description": "" //填入具体的描述信息
+    }}
+]
+```
 </TASK>
 
 // describe a database table and its columns in natural language and explain it's purposes
@@ -190,7 +240,7 @@ Analyze the input SQL statement and provide a detailed breakdown of the tables, 
 - Replace all single quotes (') with double quotes (") in the values within the SQL statement.
 =========================
 
-### Output example:
+
 ```json
 {{ 
   "tables": [  

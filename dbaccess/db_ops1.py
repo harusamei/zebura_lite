@@ -1,5 +1,5 @@
 #   解决SQL dialect 问题， 以函数统一接口
-#   每支持一种database，增加 ops_x， 以及sql_eqs.json 对应部分
+#   每支持一种database，增加 ops_x， 以及sql_eqs.json , vtype_eqs.json 对应部分
 ###########################
 import sys,os
 sys.path.insert(0, os.getcwd().lower())
@@ -9,10 +9,11 @@ import ops_m1 as ops_m
 import logging
 import json
 
+
 class DBops:
     # 不同database类型的sql equivalents 
     sql_eqs = None
-    sql_funcs = ['create_database', 'drop_table']
+    sql_funcs = ['create_database', 'drop_table','show_primary_key']
     ModuleMap = {
         'mysql': ops_m,
         'postgres': ops_p
@@ -55,7 +56,7 @@ class DBops:
                 kwargs.update(dict(zip(arg_names, args)))
             
             f_query = query.format(*args, **kwargs)
-            print(f"INFO: {f_query}")
+            logging.info(f_query)
             try:
                 result = db_execute(self.db_eng, f_query)
             except Exception as e:
@@ -76,6 +77,7 @@ class DBops:
             ops_x = DBops.ModuleMap[db_type]
             if func_name in ops_x.__dict__:
                 func = ops_x.__dict__[func_name]
+                logging.info(f"call {func_name}")
             else:
                 print(f"ERR: {func_name} not supported")
                 return None
@@ -92,10 +94,13 @@ class DBops:
     
     # 一些不好统一生成的方法
     def is_table_exist(self, tb_name):
+        # postgres, mysql 结果不一样
         result = self.table_exist(tb_name)
-        if result is None or len(result) == 0:
-            return False
-        return result[0][0]
+        result = result.fetchone()  # fetchone() 返回一行
+        if result is not None:
+            if (isinstance(result[0],str) and len(result[0])>0):
+                return True
+        return False
     
     def choose_opsx(self):
         db_type = self.db_type
@@ -106,7 +111,6 @@ class DBops:
     
     # 切换到指定数据库
     def use_database(self, db_name):
-        
         ops_x = self.choose_opsx()
         if ops_x is None:
             return False
@@ -138,6 +142,7 @@ class DBops:
         colsInfo = '\n'.join(cols)
         return ops_x.create_table(self.db_eng, tb_name, colsInfo, primary_clause)
     
+    
     # 向表中插入数据
     # tb_name: 表名
     # tuples: [(val1, val2, ...), ...] 
@@ -161,16 +166,20 @@ if __name__ == '__main__':
     
     dbops.count_items('imdb_movie_dataset')
     dbops.show_columns('imdb_movie_dataset')
-    dbops.show_current_database()
+    result = dbops.show_current_database()
+    print(result.fetchall())
     dbops.show_databases()
     dbops.show_tables()
-    dbops.show_tb_schema('imdb_movie_dataset')
+    result = dbops.show_tb_schema('imdb_movie_dataset')
+    print(result.fetchall())
     dbops.show_randow_rows('imdb_movie_dataset', 3)
-    result = dbops.is_table_exist('imdb_movie_dataset')
-    print(result)
+    print(dbops.is_table_exist('imdb_movie_dataset'))
+    
+    result = dbops.show_primary_key('imdb_movie_dataset')
+    print('Primary key:', result)
     dbops.create_database('imdb1')
     dbops.show_databases()
     dbops.dbServer['db_name'] = 'imdb1'
     dbops.use_database('imdb1')
-    print(dbops.show_current_database())
+    print(dbops.show_current_database().fetchall())
     print(dbops.drop_table('imdb_movie_dataset1'))

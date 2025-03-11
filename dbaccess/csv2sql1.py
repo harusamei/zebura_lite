@@ -1,5 +1,5 @@
 ################################
-# 将指定目录下所有CSV文件load到db_server中, 一个CSV文件对应一个表
+# 将指定目录下所有CSV文件load到db_server中, 一个CSV文件对应一个表,目录名为数据库名
 # 不支持表更新，每次导入之前同名表被删除
 ################################
 import pandas as pd
@@ -21,7 +21,7 @@ class CSV2SQL:
             raise ValueError(f"can not create/use database '{db_name}'")
         
         self.dbServer['db_name'] = db_name
-        currDB = self.ops.show_current_database()
+        currDB = self.ops.show_current_database().fetchone()[0]
         print(f"connect {dbServer['db_type']} successful, current database: {currDB}")
 
         self.df_optz = optz_data()
@@ -32,6 +32,7 @@ class CSV2SQL:
         csv_files = [f for f in os.listdir(filePath) if f.endswith('.csv')]
         # 以文件名为表名
         for fileName in csv_files:
+            print(f"Loading {fileName}")
             tb_name = fileName[:-4]     # 表名为文件名去掉.csv
             df = pd.read_csv(f"{filePath}/{fileName}",header=0,encoding='utf-8')
             df = self.df_optz.optz_csv(df)
@@ -58,15 +59,14 @@ class CSV2SQL:
         return tb_name
     
     def saveInDB(self, tb_name, df, fields):
-        print(f"Saving {tb_name} to DB")
-        
+        print(f"Loading {tb_name} to DB, the total rows: {len(df)}")
         cols_types = {k: v.name for k, v in df.dtypes.to_dict().items()}
-        print(f"INFO: {cols_types}")
         col_Names = fields.keys()
         for i in range(0, len(df), 1000):
             rows = df[i:i+1000]
             tups = self.df_optz.regz_values(rows, fields)
             self.ops.insert_data(tb_name, col_Names, tups)
+            print(f"Loaded {i+1000} rows...")
         print(f"Saved {tb_name} to DB")
         
 
@@ -76,9 +76,9 @@ if __name__ == "__main__":
     # python dbaccess/postgres/csv2psql.py --server_name Postgres1 --db_name IMDB --csv_path "training/IMDB/raw data"
     from zebura_core.placeholder import make_dbServer
     
-    s_name = 'Mysql1'
-    db_name = 'IMDB1'
-    csv_path = "training/IMDB/raw data"
+    s_name = 'Postgres1'
+    db_name = 'imdb1'
+    csv_path = "training/imdb/raw data"
     dbServer = make_dbServer(s_name)
     
     csv_path = os.path.join(os.getcwd(), csv_path)

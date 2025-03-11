@@ -17,7 +17,10 @@ D_ES_DUPLICATE_THRESHOLD = 0.9           # default threshold for duplicate
 D_ES_BULK_MAX = 1000           # default max docs of insert
 D_SIMILITY_THRESHOLD = 0.8     # default threshold for similarity
 D_SIMILITY_METHOD = 'cosine'   # default method for similarity
-D_MAX_PROMPT_LEN = 4096        # default max length of prompt
+
+# GPT default limit is 8,192 tokens, 约 32,768 characters(英语 1 token 约4 char; 中文1 token 约 1 hanzi，in+out);
+# GPT-4-32K 32,768 tokens, 约 131,072 characters
+D_MAX_PROMPT_LEN = 4000        # default max length of prompt
 
 # 项目数据存放位置及SCHEMA文件名
 S_METADATA_FILE = 'metadata.xlsx'    # metadata file name
