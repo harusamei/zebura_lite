@@ -36,12 +36,12 @@ Z_ALIGN_DAYS = 7   # 同步频率， 每周rdb 与 es 同步一次
 
 Z_META_PROJECT = tuple(['database_name','domain','db_desc','db_prompt','chat_lang','possessor'])# 项目信息, 所有表整合的prompt，数据归属
 # val_lang, 字段内容的语言
-Z_META_FIELDS = tuple(['table_name','column_name','alias','column_desc','column_type',
-                'column_key','column_length','val_lang', 'examples','comment']) # 字段信息
+Z_META_FIELDS = tuple(['table_name','column_name','hypernym','column_desc','column_type',
+                'column_key','column_length','val_lang', 'sample_data','comment']) # 字段信息
 # tb_lang，字段本身的语言
-Z_META_TABLES = tuple(['table_name','tb_desc','column_count','tb_prompt','tb_promptlit','tb_lang',
-                'group_name','group_desc','group_prompt'])
-
+Z_META_TABLES = tuple(['table_name','tb_desc','column_count','tb_prompt','tb_lang',
+                'group','tags','sample_data'])
+Z_META_TERMS = tuple(['term_name','term_desc','related_tables','ttype','grp_prompt'])
 # 类型采用pandas的类型，解析时 datetime需要parse_dates=date_columns
 Z_CASES_FIELDS = types.MappingProxyType({
     'id': 'string',

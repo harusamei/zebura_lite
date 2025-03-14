@@ -89,6 +89,71 @@ Input:
 {db_info}
 </TASK>
 
+// 给表的一个列名信息增加上位词
+<TASK: column_hypernym>
+### Task Description:
+给定一组数据库列信息和一组列名的上位词表，为每个数据库的列名(column_name)匹配最合适的上位词。
+
+### Requirements:
+- 根据数据库列的名称及其Schema信息，将该列合理地归类到最合适的上位词类别中。
+- 确保分配的上位词能够准确概括该列的语义和用途。
+- 若一个列可能属于多个上位词类别，则选择最符合数据库设计逻辑的类别。
+- 若某个列无法匹配任何上位词，标记为“None”。
+- 以JSON格式输出结果，包括列名和对应的上位词。
+
+### Input:
+- 上位词表（Hypernym List）：一组抽象的、高级的概念词汇，它们用于归类数据库的列名。
+{hypernym_list}
+- 数据库列信息（Column Schema）：包含数据库列的名称及其数据类型、示例等详细信息。
+{column_info}
+
+### Output:
+```json
+[
+  {{
+    "column_name": "column1",
+    "assigned_hypernym": "hypernym1"
+  }},
+  {{
+    "column_name": "column2",
+    "assigned_hypernym": "hypernym2"
+  }}
+]
+```
+
+</TASK>
+
+// 根据以有的组和标签体系，对一个表进行分组和打标签
+<TASK: tb_classification>
+### Task Description:
+根据给定的分组列表和标签列表，对数据库表进行分组和打标签
+
+### Input:
+- 分组列表：每个组包括组名和描述
+{group_info}
+
+- 标签列表：每个标签包括标签名和描述
+{tag_info}
+
+- 数据库表：包括表名、列名，以及若干示例数据。
+{table_info}
+
+### Requirements:
+- 根据数据库表的内容，将其归入最合适的组。
+- 从标签列表中找到2~3个标签，概括数据表的核心功能或用途， 标签不能超过3个
+- 严格按照提供的输出格式，输出JSON格式的分组信息和标签信息。
+- 输出应包括分组结果和对应标签
+
+### Output:
+```json
+{{
+    "table_name": "table_name",
+    "group": "group_name",
+    "tags": ["tag1", "tag2"]
+}}
+```
+
+</TASK>
 // grouping and tagging database tables
 <TASK: tb_grouping>
 ### Task Description:
@@ -134,14 +199,39 @@ Input:
 }}
 ```
 </TASK>
-
-// 名称或类别的归一化
-<TASK: cat_normalization>
+<TASK: column_grouping>
 ### Task Description:
-给定一组类别名称及可选的类别描述，请将语义或功能相同的类别整合到相同的标准类别下。如果提供了描述，请结合描述信息进行更精准的归类。整合后的标准类别小于{max_cats}个。
+你是一个数据库架构分析专家。给定一组数据库表及其字段的 schema 信息，你的任务是对这些字段进行分类，将功能或描述内容相似的字段归为同一组，并为每个组提供一个合适的组名。
 
 ### Requirements:
-- 每个标准类别下至少包含一个原始类别。
+- 语义相似性分析：按字段的类型、实际功能或描述内容进行合理分组，而不仅仅是名称相似。
+- 组名清晰：组名要简洁且能够准确概括组内字段的意义。
+
+### Input:
+{column_info}
+
+### Output:
+```json
+[
+  {{
+      "group_name": "group1",
+      "columns": ["column1", "column2", "column3"]
+  }},
+  {{
+      "group_name": "group2",
+      "columns": ["column4", "column5"]
+  }}
+]
+```
+</TASK>
+
+// 术语归一化，包括类别,tag， 字段名分组
+<TASK: term_normalization>
+### Task Description:
+给定一组术语及可选的术语描述，请将语义或功能相同的术语整合到一起，并给出一个标准名称。如果提供了术语的描述，请结合描述信息进行更精准的归类。整合后的标准术语数量小于{max_cats}个。
+
+### Requirements:
+- 每个标准术语下至少包含一个原始术语。
 
 ### Input:
 {catInfo}
@@ -150,18 +240,18 @@ Input:
 ```json
 [
     {{
-        "standard_category": "standard_category1",
-        "original_categories": ["category1", "category2"],
+        "standard_term": "standard_term1",
+        "original_terms": ["term1", "term2"],
         "description": "" //填入具体的描述信息
     }},
     {{
-        "standard_category": "standard_category2",
-        "original_categories": ["category3", "category4"],
+        "standard_term": "standard_term2",
+        "original_terms": ["term3", "term4"],
         "description": ""     //填入具体的描述信息
     }},
     {{
-        "standard_category": "standard_category3",
-        "original_categories": ["category5"],
+        "standard_term": "standard_term3",
+        "original_terms": ["term5"],
         "description": "" //填入具体的描述信息
     }}
 ]
