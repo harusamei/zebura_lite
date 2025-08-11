@@ -80,6 +80,17 @@ def drop_table(engine, table_name):
         return None
     return True
 
+def show_tb_schema(engine, tb_name):
+    query = f"SELECT column_name, data_type, character_maximum_length, is_nullable, column_default FROM information_schema.columns WHERE table_name = '{tb_name}'"
+    try:
+        result = db_execute(engine, query)
+        tb_scma = result.mappings().all()
+        return tb_scma
+    except Exception as e:
+        print(f"Error: {e}")
+        print(f"INFO: {query}")
+        return None
+    
 # 列出主键列
 def show_primary_key(engine, tb_name):
     query = f"""

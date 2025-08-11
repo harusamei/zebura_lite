@@ -13,7 +13,7 @@ import json
 class DBops:
     # 不同database类型的sql equivalents 
     sql_eqs = None
-    sql_funcs = ['create_database', 'drop_table','show_primary_key']
+    sql_funcs = ['create_database', 'drop_table','show_primary_key','show_tb_schema']
     ModuleMap = {
         'mysql': ops_m,
         'postgres': ops_p
@@ -171,7 +171,7 @@ if __name__ == '__main__':
     dbops.show_databases()
     dbops.show_tables()
     result = dbops.show_tb_schema('imdb_movie_dataset')
-    print(result.fetchall())
+    print(result)
     dbops.show_randow_rows('imdb_movie_dataset', 3)
     print(dbops.is_table_exist('imdb_movie_dataset'))
     

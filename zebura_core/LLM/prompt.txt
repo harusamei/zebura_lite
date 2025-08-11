@@ -1,11 +1,252 @@
 ///////////////////////////////////////
-// The MAIN version, taskname and output format in all other languages' version should remain consistent.
-// prompt template， format：<TASK: xxx> ... </TASK>
+// The BASE prompt for all languages
+// format：<TASK: xxx> ... </TASK>
 // ignore lines starting with '//'
-// NOTE: Modifying the format of taskname and output format will affect ans_extractor.py
+// Tasklist: ['column_description', 'column_grouping', 'column_hypernym', 'data_exploration', 'db_description', 'db_glossary','fups4db', 'nl_to_sql', 'rewrite', 'scn4db', 'sql4db', 'sql_breakdown', 'sql_details', 'sql_revise','tables_choose', 'tb_classification', 'term_expansion', 'term_normalization', 'translation']
+////////////////////////////////////////
 
-<TASK: rewrite>
+// 给表和列名生成描述
+<TASK:column_description>
+
+### Task Description:
+Given a database table's column information, generate a brief description of the table and each column using {chat_lang}.
+
+### Requirements:
+- The description should be brief, using a short sentence or keywords to convey the column's function, purpose, and aliases. 
+- Output the results in JSON format, including the column name and its corresponding description.  
+
+### Input:
+{tb_info}
+
+### Output:
+```json
+{{
+  "table_description": "A brief summary of the table's purpose and content.",
+  "columns": [
+    {{
+      "column_name": "column1",
+      "description": "description1"
+    }},
+    {{
+      "column_name": "column2",
+      "description": "description2"
+    }}
+  ]
+}}  
+
+</TASK>
+
+
+<TASK:column_grouping>
+### Task Description:
+你是一个数据库架构分析专家。给定一组数据库表及其字段的 schema 信息，你的任务是对这些字段进行分类，将功能或描述内容相似的字段归为同一组，并为每个组提供一个合适的组名。
+
+### Requirements:
+- 语义相似性分析：按字段的类型、实际功能或描述内容进行合理分组，而不仅仅是名称相似。
+- 组名清晰：组名要简洁且能够准确概括组内字段的意义。
+
+### Input:
+{column_info}
+
+### Output:
+```json
+[
+  {{
+      "group_name": "group1",
+      "columns": ["column1", "column2", "column3"]
+  }},
+  {{
+      "group_name": "group2",
+      "columns": ["column4", "column5"]
+  }}
+]
+```
+</TASK>
+
+// 给表的一个列名信息增加上位词
+<TASK:column_hypernym>
+### Task Description:
+Assigning hypernyms to a given set of database column names.
+Given a set of column names from database tables and a list of hypernyms, iterate through each column name and find the hypernym that best fits the logical design of a typical database schema.
+
+### Instructions:
+You will be provided with a set of column names from database tables and a predefined list of hypernyms. Your task is to iterate through each column name and determine the most appropriate hypernym based on typical database schema design.
+
+### Requirements:
+- Every column must be assigned a hypernym from the given list.
+- If a column name matches multiple hypernyms, select the one that best aligns with logical database design. 
+- Output the results in JSON format, including the column name and its assigned hypernym.  
+
+### Input:
+
+- **Hypernym List**: A set of high-level concept words for classifying database column names.  
+  {hypernym_list} 
+
+- **Column Schema**: Detailed information about database columns, including table name, column names, data types, and samples.  
+  {column_info} 
+
+### Output:
+
+```json
+[
+  {{
+    "column_name": "column1",
+    "assigned_hypernym": "hypernym1"
+  }},
+  {{
+    "column_name": "column2",
+    "assigned_hypernym": "hypernym2"
+  }}
+]
+```
+
+</TASK>
+
+
+<TASK:data_exploration>
+### Task Description:
+You are given the schema of a database table, an SQL query, and its result. Your task is to infer what aspects of the database table the user might be interested in and generate several natural language questions. Consider the following scenarios:
+- If the result is empty, generate several broader natural language query suggestions to help the user adjust the query conditions and obtain meaningful results.
+- If the query has results, analyze the data and conditions in the query to infer possible interests or follow-up questions the user might have.
+
+### Requirements:
+Please strictly follow the JSON format of the output example. not trailing commas in the JSON object.
+
+### Output Example:
+```json
+{{
+  "actions": [
+    "<suggesion1>",
+    "<suggesion2>"
+  ],
+  "questions": [
+    "<question1>",
+    "<question2>"
+  ]
+}}
+```
+
+
+### Input:
+** Database Schema: **
+{db_info}
+** SQL Query: **
+{sql_query}
+** SQL Query result: **
+{sql_result}
+
+### Output:
+</TASK>
+
+// 生成database的描述
+<TASK:db_description>
+### Task Description:
+
+You are an expert in database schema analysis. Given a database named {db_name} and grouped information about its tables, your task is to analyze and generate a concise description of the database. Since there are many tables, the input provides only a grouped overview of table functionalities and application scenarios, along with high-level details about column names for tables within the same group. Based on this information, you need to generate a brief summary of the database in {chat_lang}.
+
+### Requirements:
+- The generated description should be clear and concise, summarizing the main functionalities and application scenarios of the database.
+- The output should be in JSON format, including the database name and its description.
+
+### Input:
+{db_info}
+
+### Output:
+```json
+{{
+  "database_name": "database_name",
+  "description": "A brief description of the database's main functions and application scenarios."
+}}
+```
+</TASK>
+
+// follow-ups questions for the database
+<TASK:fups4db>
+### Task Description:
+Generate follow-up questions and their corresponding SQL queries based on a given SQL query, database table description, and sample records. The questions should be clear, written in natural language, and explore related aspects of the query or database structure.
+
+### Requirements:
+1. Generate follow-up questions in {chat_lang}.
+2. Output the results in JSON format, strictly following the provided output example.
+
+### Input:
+- **Table description:**
+  {tb_prompt}
+
+- **Sample records:**
+  {sample_records}
+
+- **Initial SQL Query:**
+  {sql_query}
+
+- **Query result:**
+  {sql_result}
+
+### Output Example:
+
+```json
+[
+  {{
+    "question": question_text1,
+    "sql": sql_statement1
+  }},
+  {{
+    "question": question_text2,
+    "sql": sql_statement2
+  }},
+  {{
+    "question": question_text3,
+    "sql": sql
+  }}
+]
+```
+</TASK>
+
+// generate SQL query based on natural language input and database schema
+<TASK:nl_to_sql>
+### Task Description:
+Generate an SQL query based on a user's natural language input and a provided database schema. The output must include a comprehensive breakdown of the SQL statement, detailing the involved tables, columns, and the values used in the WHERE clause.
+
+### Requirements:
+Please strictly follow the JSON format of the output example. Ensure that the JSON is syntactically correct and does not contain any extra commas after the last element in arrays or objects.
+
+### Output Example:
+```json
+{{
+  "sql": "sql statement",
+  "tables": [
+    {{"name": "table_name1", 
+      "alias": "t1"
+    }},
+    {{"name": "table_name2", "alias": "t2"}}
+  ],
+  "columns": [
+    {{"name": "column_name1", "table": "table_name1", "alias": "c1"}},
+    {{"name": "column_name2", "table": "table_name1"}},
+    {{"name": "column_name3", "table": "table_name1"}},
+    {{"name": "column_name4", "table": "table_name2"}},
+    {{"name": "column_name5", "table": "table_name2", "alias": "c5"}}
+  ],
+  "values": [
+    {{"value": "value1", "column": "column_name1", "table": "table_name1"}},
+    {{"value": number1, "column": "column_name2", "table": "table_name1"}}
+  ]
+}}
+
+### Input:
+** User Query: **
+{question}
+** Database Schema: **
+{db_info}
+** Text-to-SQL Examples with json format: **
+{examples}
+
+### Output:
+
+</TASK>
+
 // 将多轮对话，重写为一条查询语句
+<TASK:rewrite>
 During a conversation, when a user asks data-related questions and the agent should provide the corresponding data analysis based on the user's intent. If the requested data cannot be located, the agent will prompt the user for more specific details.
 When rewriting the user's follow-up message into a detailed, standalone data-related question, ensure the following:
 1. Maintain the original intent of the follow-up message.
@@ -30,8 +271,317 @@ user: {query}
 Refined Standalone Question:
 </TASK>
 
+// list some sapplication scenarios for this database
+<TASK:scn4db>
+### Task Description:
+Given a database schema, list application scenarios where this database can be used to generate reports, along with the target user groups for these reports. The scenarios should cover diverse application areas and user needs, showcasing the database's versatility and practical value.
+
+### Requirements:
+1. Identify at least {num_scenarios} distinct application scenarios or use cases.
+2. Output the result in JSON format, strictly following the provided output format.
+
+### Input:
+- **Table description:**
+  {tb_prompt}
+
+- **Sample records:**
+  {sample_records}
+
+### Output format:
+```json
+[
+  {{
+    "scenario": "scenario_text1",
+    "description": "description_text1",
+    "target_users": ["userA", "userB"]
+  }},
+  {{
+    "scenario": "scenario_text2",
+    "description": "description_text2",
+    "target_users": ["userC", "userD", "userE"]
+  }}
+]
+```
+
+</TASK>
+
+// generate natural language questions from database schema
+<TASK:sql4db>
+### Task Description:
+Generate natural language questions based on the provided database table description and sample records. These questions should reflect the {target_users}' interests within the context of {scenario}.
+
+### Requirements:
+1. Generate at least {num_questions} the natural language questions in {chat_lang}.
+2. Questions should cover the following aspects:
+  - Data content
+  - Data purpose
+  - Statistical or trend analysis
+3. Ensure the questions are closely related to the provided table structure and records.
+4. The questions must align with their corresponding SQL queries.
+5. Output the results in JSON format, strictly following the provided output example.
+
+### Input:
+- **Table description:**
+  {tb_prompt}
+
+- **Sample records:**
+  {sample_records}
+
+### Output Example:
+```json
+[
+  {{
+    "question": question_text1,
+    "sql": sql_statement1
+  }},
+  {{
+    "question": question_text2,
+    "sql": sql_statement2
+  }},
+  {{
+    "question": question_text3,
+    "sql": sql
+  }}
+]
+```
+</TASK>
+
+// analyse the complex SQL
+<TASK:sql_breakdown>
+### Task Description:
+Analyze the input SQL statement and provide a detailed breakdown of the tables, columns, and values used in the SQL statement.
+
+1. **Tables:** List all the tables in the SQL statement, including their aliases if they exist.
+2. **Columns:** List all the columns used in the SQL statement, along with their corresponding tables. Include the column aliases if they exist.
+3. **Values:** Extract all values from the WHERE clause, along with the columns and tables they are associated with.
+
+### Notes:
+- Please strictly follow the JSON format of the below output example.
+- Replace all single quotes (') with double quotes (") in the values within the SQL statement.
+=========================
+
+
+```json
+{{ 
+  "tables": [  
+    {{"name": "table1", "alias": "t1"}},  
+    {{"name": "table2", "alias": "t2"}}  
+  ],  
+  "columns": [  
+    {{"name": "column1", "table": "table1", "alias": "c1"}},  
+    {{"name": "column2", "table": "table1"}},  
+    {{"name": "column3", "table": "table2"}}  
+  ],  
+  "values": [  
+    {{"value": number1, "column": "column1", "table": "table1"}},  
+    {{"value": "string1", "column": "column2", "table": "table2"}}  
+  ]  
+}}
+
+```
+=========================
+### Input SQL Statement:
+{sql_statement}
+
+### Output:
+
+</TASK>
+
+// 改写SQL使输出结果包含更多详情信息
+<TASK:sql_details>
+## Task: Optimize SQL Query for Enhanced Data Details
+
+### Objective
+Rewrite the given SQL query to include more comprehensive data, ensuring the results are intuitive and informative.
+
+### Guidelines:
+1. **Expand Data**: 
+    - Ensure fields from the WHERE clause are included in the SELECT clause. 
+    - When using aggregate functions (e.g., COUNT, SUM), use the GROUP BY clause for accurate results.
+   
+2. **Improve Clarity**: 
+    - Use aliases for clear column names.
+    - Format numeric or date fields as needed.
+    - Ensure key details are easily accessible at a glance.
+
+3. **Output**: The output must be an SQL query that includes the enhanced data.
+
+### Input Example (Original SQL Query):
+SELECT customer_id, order_date, total_amount
+FROM orders
+WHERE order_date > '2023-01-01';
+
+### Output Example (Rewritten SQL Query with Additional Details):
+SELECT order_id AS "Order ID", 
+       order_date AS "Order Date", 
+       total_amount AS "Total Amount", 
+       customer_name AS "Customer Name"
+FROM orders
+WHERE order_date > '2023-01-01'
+ORDER BY order_date DESC;
+
+======================
+
+### Database schema:
+{dbSchema}
+
+### Input Original SQL Query:
+{sql_statement}
+
+### Output Rewritten SQL Query:
+</TASK>
+
+// recorrect the SQL query
+<TASK:sql_revise>
+### Task Description:
+You are an SQL programming expert specializing in diagnosing and correcting errors in SQL queries. Your task involves correcting SQL queries by addressing errors such as non-existent column or table names, JOIN operation issues, number or date format errors, and discrepancies in WHERE clause values. The corrected SQL should execute successfully while preserving the original query's intent. 
+
+### Requirements:
+- Correct the SQL query by addressing the errors mentioned.
+- Use the 'LIKE' operator instead of '=' operator. 
+- Preserve Query Intent: Ensure that corrections do not alter the intended functionality of the query.
+- Please strictly follow the format of the output example.
+
+### Output example：
+```sql
+SELECT e.employee_id, e.first_name, e.last_name, d.department_name
+FROM Employees e
+JOIN Departments d ON e.department_id = d.department_id;
+```
+### Input:
+- Database Schema:
+{dbSchema}
+
+- Original SQL：
+{ori_sql}
+
+- Existing issues:
+{err_msgs}
+
+### Output:
+
+</TASK>
+
+// Select the database tables required for the query
+<TASK:tables_choose>
+### Task Description:
+Given the descriptions of multiple database tables and a natural language sentence, determine whether the sentence is a query related to the database. 
+If it is, select one or more relevant database table names. 
+If not, handle it as a chat and generate a response in {chat_lang}.
+
+### Requirements:
+Please strictly follow the JSON format of the output example.
+
+### Output example:
+
+1. **If the input is a query related to the database:**
+```json
+{{
+  "tables": ["table name1", "table name2"]
+}}
+```
+2. **If the input is unrelated to the given database:**
+```json
+{{
+  "chat": "<response1>"
+}}
+```
+
+### Input: 
+
+** Natural Language Sentence: **
+{question}
+** Database Schema: **
+{db_info}
+
+### Output:
+</TASK>
+
+// 根据以有的组和标签体系，对一个表进行分组和打标签
+<TASK:tb_classification>
+### Task Description  
+Given a database table along with a predefined list of grouping keywords and tags, categorize the data by grouping relevant entries together and assigning appropriate tags based on the provided lists.
+
+- Grouping Task: You will be provided with a list of grouping keywords (each with a name and description). Analyze the content of each database table and assign it to the most relevant group.
+- Tagging Task: You will also be given a list of tags (each with a name and description). For each database table, select 2-3 tags that best summarize its core function or purpose. 
+
+### Input
+- Grouping keywords:
+  {group_info} 
+- Tag List: 
+  {tag_info}  
+- Database Table: 
+  {table_info}  
+
+### Requirements 
+- Each database table must be assigned to one group and at least one tag.
+- The output must strictly follow the example format.
+
+### Output example:
+```json
+{{
+    "table_name": "table_name",
+    "group": "group_name",
+    "tags": ["tag1", "tag2"]
+}}
+```
+</TASK>
+
+// glossary for grouping and tagging of database tables
+<TASK:db_glossary>
+
+### Task Description:
+You are provided with a database named {db_name} and several tables within the database. Each table consists of its name and a list of fields. Your task is to construct a glossary for both groups and tags based on this information. Additionally, you need to assign each table to a specific group and associate it with multiple tags.
+
+### Database Table Information:
+{tables_info}
+
+### Requirements:
+- Each table should belong to one group only, but can have multiple tags.
+- The output must strictly follow the example format.
+
+### Output example:
+```json
+{{
+  "tables": [
+    {{
+      "table_name": "table1",
+      "group": "group1",
+      "tags": ["tag1", "tag2"]
+    }},
+    {{
+      "table_name": "table2",
+      "group": "group2",
+      "tags": ["tag3", "tag4"]
+    }}
+  ],
+  "groups": [
+    {{
+      "group_name": "group1",
+      "description": "Description of group 1."
+    }},
+    {{
+      "group_name": "group2",
+      "description": "Description of group 2."
+    }}
+  ],
+  "tags": [
+    {{
+      "tag_name": "tag1",
+      "description": "Description of tag 1."
+    }},
+    {{
+      "tag_name": "tag2",
+      "description": "Description of tag 2."
+    }}
+  ]
+}}
+
+```
+</TASK>
+
 //
-<TASK: term_expansion>
+<TASK:term_expansion>
 ### Task Description:
 Generate term expansions for the given terms based on the table below. Use methods such as synonyms, related terms, and translations to enrich the vocabulary while ensuring relevance to the specified category.
 
@@ -81,473 +631,45 @@ Generate term expansions for the given terms based on the table below. Use metho
 
 </TASK>
 
-// summary of database
-<TASK: db_summary>
-Below is information about a database, including the tables and their schemas. Please provide a clear and concise summary in {chat_lang} to help the user understand the database. While the goal is to stay within a {limit_length}-word limit, the summary must include table names and key columns, even if it exceeds this limit. Ensure that related tables are grouped together for easier comprehension.
-=========================
-Input:
-{db_info}
-</TASK>
-
-// 给表的一个列名信息增加上位词
-<TASK: column_hypernym>
-### Task Description:
-给定一组数据库列信息和一组列名的上位词表，为每个数据库的列名(column_name)匹配最合适的上位词。
-
-### Requirements:
-- 根据数据库列的名称及其Schema信息，将该列合理地归类到最合适的上位词类别中。
-- 确保分配的上位词能够准确概括该列的语义和用途。
-- 若一个列可能属于多个上位词类别，则选择最符合数据库设计逻辑的类别。
-- 若某个列无法匹配任何上位词，标记为“None”。
-- 以JSON格式输出结果，包括列名和对应的上位词。
-
-### Input:
-- 上位词表（Hypernym List）：一组抽象的、高级的概念词汇，它们用于归类数据库的列名。
-{hypernym_list}
-- 数据库列信息（Column Schema）：包含数据库列的名称及其数据类型、示例等详细信息。
-{column_info}
-
-### Output:
-```json
-[
-  {{
-    "column_name": "column1",
-    "assigned_hypernym": "hypernym1"
-  }},
-  {{
-    "column_name": "column2",
-    "assigned_hypernym": "hypernym2"
-  }}
-]
-```
-
-</TASK>
-
-// 根据以有的组和标签体系，对一个表进行分组和打标签
-<TASK: tb_classification>
-### Task Description:
-根据给定的分组列表和标签列表，对数据库表进行分组和打标签
-
-### Input:
-- 分组列表：每个组包括组名和描述
-{group_info}
-
-- 标签列表：每个标签包括标签名和描述
-{tag_info}
-
-- 数据库表：包括表名、列名，以及若干示例数据。
-{table_info}
-
-### Requirements:
-- 根据数据库表的内容，将其归入最合适的组。
-- 从标签列表中找到2~3个标签，概括数据表的核心功能或用途， 标签不能超过3个
-- 严格按照提供的输出格式，输出JSON格式的分组信息和标签信息。
-- 输出应包括分组结果和对应标签
-
-### Output:
-```json
-{{
-    "table_name": "table_name",
-    "group": "group_name",
-    "tags": ["tag1", "tag2"]
-}}
-```
-
-</TASK>
-// grouping and tagging database tables
-<TASK: tb_grouping>
-### Task Description:
-给定一个名为{db_name}的数据库，其中存放着一些数据表。 每个表包含表名及其字段列表。 请根据这些信息，对数据表进行分组，使保存相似信息或有相似应用场景的表归为一组，并且对每个表提供2-3个简要标签，概括该表的核心功能或用途。最终输出分组信息、组的简要描述，以及每个表的标签。
-
-### 数据库表信息：
-{tables_info}
-
-### 要求：
-分组：识别表的功能或应用场景，并合理分类。
-标签：为每个表提供2-3个简要标签，概括该表的核心功能或用途。
-输出：严格按照提供的输出格式，输出JSON格式的分组信息和标签信息。
-
-### Output example:
-```json
-{{
-    "groups": [
-        {{
-            "group_name": "group1",
-            "description": "Description of group 1.",
-            "included_tables": ["table1", "table2", "table3"]
-        }},
-        {{
-            "group_name": "group2",
-            "description": "Description of group 2.",
-            "included_tables": ["table4", "table5"]
-        }}
-    ],
-    "tables": [
-        {{
-            "table_name": "table1",
-            "tags": ["tag1", "tag2", "tag3"]
-        }},
-        {{
-            "table_name": "table2",
-            "tags": ["tag2", "tag4"]
-        }},
-        {{
-            "table_name": "table3",
-            "tags": ["tag5", "tag6"]
-        }}
-    ]
-}}
-```
-</TASK>
-<TASK: column_grouping>
-### Task Description:
-你是一个数据库架构分析专家。给定一组数据库表及其字段的 schema 信息，你的任务是对这些字段进行分类，将功能或描述内容相似的字段归为同一组，并为每个组提供一个合适的组名。
-
-### Requirements:
-- 语义相似性分析：按字段的类型、实际功能或描述内容进行合理分组，而不仅仅是名称相似。
-- 组名清晰：组名要简洁且能够准确概括组内字段的意义。
-
-### Input:
-{column_info}
-
-### Output:
-```json
-[
-  {{
-      "group_name": "group1",
-      "columns": ["column1", "column2", "column3"]
-  }},
-  {{
-      "group_name": "group2",
-      "columns": ["column4", "column5"]
-  }}
-]
-```
-</TASK>
-
 // 术语归一化，包括类别,tag， 字段名分组
 <TASK: term_normalization>
+
 ### Task Description:
-给定一组术语及可选的术语描述，请将语义或功能相同的术语整合到一起，并给出一个标准名称。如果提供了术语的描述，请结合描述信息进行更精准的归类。整合后的标准术语数量小于{max_cats}个。
+Given a set of terms with their descriptions, group the terms that share the same meaning or function, and assign a standard name to each group. The total number of standard terms should be between 1 and {max_cats}.
 
 ### Requirements:
-- 每个标准术语下至少包含一个原始术语。
+- Each standard term must include at least one original term.
+- Provide a description for each standard term.
+- The output should be in JSON format, strictly following the provided output example.
 
 ### Input:
+- A list of terms with descriptions
 {catInfo}
 
-### Output:
+### Output example:
 ```json
 [
     {{
         "standard_term": "standard_term1",
         "original_terms": ["term1", "term2"],
-        "description": "" //填入具体的描述信息
+        "description": "" // Description for standard_term1
     }},
     {{
         "standard_term": "standard_term2",
         "original_terms": ["term3", "term4"],
-        "description": ""     //填入具体的描述信息
+        "description": ""     // Description for standard_term2
     }},
     {{
         "standard_term": "standard_term3",
         "original_terms": ["term5"],
-        "description": "" //填入具体的描述信息
+        "description": "" // Description for standard_term3
     }}
 ]
 ```
 </TASK>
 
-// describe a database table and its columns in natural language and explain it's purposes
-<TASK: db_desc>
-You are a database programming expert. Given the schema of a database table, to make the table easier to understand, please generate a concise description of the table based on its column name and column type, explaining its possible purpose. For each column in the table, provide its description and potential aliases it might use. If the column name is in a language other than {chat_lang}, translate it into {chat_lang}.The generated description should be in {chat_lang}.
-=========================
-Example of Input in Markdown format:
-table_name: Products
-| column_name     | type        |
-|:----------------|:------------|
-| productName     | varchar(80)  |
-| price           | decimal(8,2) |
-| brandName       | varchar(80)  |
-| releaseTime     | datetime(3)  |
 
-=========================
-Example of Output in JSON format:
-```json
-{{
-  "table_name": "Products",
-  "table_description": "This table stores detailed information about various products in a retail or e-commerce database.",
-  "columns": [
-    {{
-      "column_name": "productName",
-      "description": "Contains the name or title of the product.",
-      "translation_and_aliases": ["Product Title", "Item Name", "Product Label"]
-    }},
-    {{
-      "column_name": "price",
-      "description": "Records the price of the product, allowing values up to 999,999.99. Essential for pricing and calculations.",
-      "translation_and_aliases": ["Product Price", "Cost", "Selling Price"]
-    }},
-    {{
-      "column_name": "brandName",
-      "description": "Indicates the brand or manufacturer of the product. Helps identify the origin and quality of the product.",
-      "translation_and_aliases": ["Brand", "Manufacturer", "Brand Label"]
-    }},
-    {{
-      "column_name": "releaseTime",
-      "description": "Records the date and time when the product was added to the inventory or catalog. Helps track availability and shelf life.",
-      "translation_and_aliases": ["Listing Date", "Availability Date", "Product Release Date"]
-    }}
-  ]
-}}
-```
-=========================
-NOTE: 
-- please strictly follow the output format of the example above when outputting the generated content.
-- The **Column** in the output must correspond one-to-one with the **Column** in the input.
-=========================
-INPUT:
-
-Table_name:{table_name}
-{column_info}
-
-=========================
-OUTPUT:
-
-</TASK>
-
-// analyse the complex SQL
-<TASK: sql_breakdown>
-### Task Description:
-Analyze the input SQL statement and provide a detailed breakdown of the tables, columns, and values used in the SQL statement.
-
-1. **Tables:** List all the tables in the SQL statement, including their aliases if they exist.
-2. **Columns:** List all the columns used in the SQL statement, along with their corresponding tables. Include the column aliases if they exist.
-3. **Values:** Extract all values from the WHERE clause, along with the columns and tables they are associated with.
-
-### Notes:
-- Please strictly follow the JSON format of the below output example.
-- Replace all single quotes (') with double quotes (") in the values within the SQL statement.
-=========================
-
-
-```json
-{{ 
-  "tables": [  
-    {{"name": "table1", "alias": "t1"}},  
-    {{"name": "table2", "alias": "t2"}}  
-  ],  
-  "columns": [  
-    {{"name": "column1", "table": "table1", "alias": "c1"}},  
-    {{"name": "column2", "table": "table1"}},  
-    {{"name": "column3", "table": "table2"}}  
-  ],  
-  "values": [  
-    {{"value": number1, "column": "column1", "table": "table1"}},  
-    {{"value": "string1", "column": "column2", "table": "table2"}}  
-  ]  
-}}
-
-```
-=========================
-### Input SQL Statement:
-{sql_statement}
-
-### Output:
-
-</TASK>
-
-// 改写SQL使输出结果包含更多详情信息
-<TASK: sql_details>
-## Task: Optimize SQL Query for Enhanced Data Details
-
-### Objective
-Rewrite the given SQL query to include more comprehensive data, ensuring the results are intuitive and informative.
-
-### Guidelines:
-1. **Expand Data**: 
-    - Ensure fields from the WHERE clause are included in the SELECT clause. 
-    - When using aggregate functions (e.g., COUNT, SUM), use the GROUP BY clause for accurate results.
-   
-2. **Improve Clarity**: 
-    - Use aliases for clear column names.
-    - Format numeric or date fields as needed.
-    - Ensure key details are easily accessible at a glance.
-
-3. **Output**: The output must be an SQL query that includes the enhanced data.
-
-### Input Example (Original SQL Query):
-SELECT customer_id, order_date, total_amount
-FROM orders
-WHERE order_date > '2023-01-01';
-
-### Output Example (Rewritten SQL Query with Additional Details):
-SELECT order_id AS "Order ID", 
-       order_date AS "Order Date", 
-       total_amount AS "Total Amount", 
-       customer_name AS "Customer Name"
-FROM orders
-WHERE order_date > '2023-01-01'
-ORDER BY order_date DESC;
-
-======================
-
-### Database schema:
-{dbSchema}
-
-### Input Original SQL Query:
-{sql_statement}
-
-### Output Rewritten SQL Query:
-</TASK>
-
-// recorrect the SQL query
-<TASK: sql_revise>
-### Task Description:
-You are an SQL programming expert specializing in diagnosing and correcting errors in SQL queries. Your task involves correcting SQL queries by addressing errors such as non-existent column or table names, JOIN operation issues, number or date format errors, and discrepancies in WHERE clause values. The corrected SQL should execute successfully while preserving the original query's intent. 
-
-### Requirements:
-- Correct the SQL query by addressing the errors mentioned.
-- Use the 'LIKE' operator instead of '=' operator. 
-- Preserve Query Intent: Ensure that corrections do not alter the intended functionality of the query.
-- Please strictly follow the format of the output example.
-
-### Output example：
-```sql
-SELECT e.employee_id, e.first_name, e.last_name, d.department_name
-FROM Employees e
-JOIN Departments d ON e.department_id = d.department_id;
-```
-### Input:
-- Database Schema:
-{dbSchema}
-
-- Original SQL：
-{ori_sql}
-
-- Existing issues:
-{err_msgs}
-
-### Output:
-
-</TASK>
-
-// list some sapplication scenarios for this database
-<TASK: scn4db>
-### Task Description:
-Given a database schema, list application scenarios where this database can be used to generate reports, along with the target user groups for these reports. The scenarios should cover diverse application areas and user needs, showcasing the database's versatility and practical value.
-
-### Requirements:
-1. Identify at least {num_scenarios} distinct application scenarios or use cases.
-2. Output the result in JSON format, strictly following the provided output format.
-
-### Input:
-- **Table description:**
-  {tb_prompt}
-
-- **Sample records:**
-  {sample_records}
-
-### Output format:
-```json
-[
-  {{
-    "scenario": "scenario_text1",
-    "description": "description_text1",
-    "target_users": ["userA", "userB"]
-  }},
-  {{
-    "scenario": "scenario_text2",
-    "description": "description_text2",
-    "target_users": ["userC", "userD", "userE"]
-  }}
-]
-```
-
-</TASK>
-// generate natural language questions from database schema
-<TASK: sql4db>
-### Task Description:
-Generate natural language questions based on the provided database table description and sample records. These questions should reflect the {target_users}' interests within the context of {scenario}.
-
-### Requirements:
-1. Generate at least {num_questions} the natural language questions in {chat_lang}.
-2. Questions should cover the following aspects:
-  - Data content
-  - Data purpose
-  - Statistical or trend analysis
-3. Ensure the questions are closely related to the provided table structure and records.
-4. The questions must align with their corresponding SQL queries.
-5. Output the results in JSON format, strictly following the provided output example.
-
-### Input:
-- **Table description:**
-  {tb_prompt}
-
-- **Sample records:**
-  {sample_records}
-
-### Output Example:
-```json
-[
-  {{
-    "question": question_text1,
-    "sql": sql_statement1
-  }},
-  {{
-    "question": question_text2,
-    "sql": sql_statement2
-  }},
-  {{
-    "question": question_text3,
-    "sql": sql
-  }}
-]
-```
-</TASK>
-// follow-ups questions for the database
-<TASK: fups4db>
-### Task Description:
-Generate follow-up questions and their corresponding SQL queries based on a given SQL query, database table description, and sample records. The questions should be clear, written in natural language, and explore related aspects of the query or database structure.
-
-### Requirements:
-1. Generate follow-up questions in {chat_lang}.
-2. Output the results in JSON format, strictly following the provided output example.
-
-### Input:
-- **Table description:**
-  {tb_prompt}
-
-- **Sample records:**
-  {sample_records}
-
-- **Initial SQL Query:**
-  {sql_query}
-
-- **Query result:**
-  {sql_result}
-
-### Output Example:
-
-```json
-[
-  {{
-    "question": question_text1,
-    "sql": sql_statement1
-  }},
-  {{
-    "question": question_text2,
-    "sql": sql_statement2
-  }},
-  {{
-    "question": question_text3,
-    "sql": sql
-  }}
-]
-```
-</TASK>
-
-<TASK: translation>
+<TASK:translation>
 ### Task Description:
 Translate the following JSON object into English. The JSON contains a text and its language. Translate only the text to {trgt_lang} and return the result in JSON format
 ### Requirements:
@@ -584,115 +706,3 @@ Please strictly follow the JSON format of the provided output example.
 ### Output:
 </TASK>
 
-// Select the database tables required for the query
-<TASK: tables_choose>
-### Task Description:
-Given the descriptions of multiple database tables and a natural language sentence, determine whether the sentence is a query related to the database. 
-If it is, select one or more relevant database table names. 
-If not, handle it as a chat and generate a response in {chat_lang}.
-
-### Requirements:
-Please strictly follow the JSON format of the output example.
-
-### Output example:
-
-1. **If the input is a query related to the database:**
-```json
-{{
-  "tables": ["table name1", "table name2"]
-}}
-```
-2. **If the input is unrelated to the given database:**
-```json
-{{
-  "chat": "<response1>"
-}}
-```
-
-### Input: 
-
-** Natural Language Sentence: **
-{question}
-** Database Schema: **
-{db_info}
-
-### Output:
-</TASK>
-
-// generate SQL query based on natural language input and database schema
-<TASK: nl_to_sql>
-### Task Description:
-Generate an SQL query based on a user's natural language input and a provided database schema. The output must include a comprehensive breakdown of the SQL statement, detailing the involved tables, columns, and the values used in the WHERE clause.
-
-### Requirements:
-Please strictly follow the JSON format of the output example. Ensure that the JSON is syntactically correct and does not contain any extra commas after the last element in arrays or objects.
-
-### Output Example:
-```json
-{{
-  "sql": "sql statement",
-  "tables": [
-    {{"name": "table_name1", 
-      "alias": "t1"
-    }},
-    {{"name": "table_name2", "alias": "t2"}}
-  ],
-  "columns": [
-    {{"name": "column_name1", "table": "table_name1", "alias": "c1"}},
-    {{"name": "column_name2", "table": "table_name1"}},
-    {{"name": "column_name3", "table": "table_name1"}},
-    {{"name": "column_name4", "table": "table_name2"}},
-    {{"name": "column_name5", "table": "table_name2", "alias": "c5"}}
-  ],
-  "values": [
-    {{"value": "value1", "column": "column_name1", "table": "table_name1"}},
-    {{"value": number1, "column": "column_name2", "table": "table_name1"}}
-  ]
-}}
-
-### Input:
-** User Query: **
-{question}
-** Database Schema: **
-{db_info}
-** Text-to-SQL Examples with json format: **
-{examples}
-
-### Output:
-
-</TASK>
-
-<TASK: data_exploration>
-### Task Description:
-You are given the schema of a database table, an SQL query, and its result. Your task is to infer what aspects of the database table the user might be interested in and generate several natural language questions. Consider the following scenarios:
-- If the result is empty, generate several broader natural language query suggestions to help the user adjust the query conditions and obtain meaningful results.
-- If the query has results, analyze the data and conditions in the query to infer possible interests or follow-up questions the user might have.
-
-### Requirements:
-Please strictly follow the JSON format of the output example. not trailing commas in the JSON object.
-
-### Output Example:
-```json
-{{
-  "actions": [
-    "<suggesion1>",
-    "<suggesion2>"
-  ],
-  "questions": [
-    "<question1>",
-    "<question2>"
-  ]
-}}
-```
-
-
-### Input:
-** Database Schema: **
-{db_info}
-** SQL Query: **
-{sql_query}
-** SQL Query result: **
-{sql_result}
-
-### Output:
-</TASK>

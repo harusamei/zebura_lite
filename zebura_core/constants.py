@@ -34,7 +34,7 @@ Z_CASES_INDEX = 'zebura_cases_{pj_name}'   # cases索引名
 Z_ALIGN_DAYS = 7   # 同步频率， 每周rdb 与 es 同步一次
 # chat_lang, 该项目默认交流语言
 
-Z_META_PROJECT = tuple(['database_name','domain','db_desc','db_prompt','chat_lang','possessor'])# 项目信息, 所有表整合的prompt，数据归属
+Z_META_PROJECT = tuple(['database_name','domain','db_desc','chat_lang','possessor'])# 项目信息, 所有表整合的prompt，数据归属
 # val_lang, 字段内容的语言
 Z_META_FIELDS = tuple(['table_name','column_name','hypernym','column_desc','column_type',
                 'column_key','column_length','val_lang', 'sample_data','comment']) # 字段信息

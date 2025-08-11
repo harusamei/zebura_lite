@@ -75,6 +75,32 @@ def insert_data(engine,tb_name, col_names, rows):
         return False
     return True
 
+def show_tb_schema(engine, tb_name):
+    # 为了与其它数据库兼容，将字段名归一为
+    # column_name, data_type, character_maximum_length, numeric_precision, is_nullable, column_default
+    query = f"DESCRIBE {tb_name}"
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(query)
+            tList = result.mappings().all() # 将结果转换为字典格式
+            tb_scma = []
+            for row in tList:
+                tDict = {}
+                tDict['column_name'] = row['Field']
+                tDict['data_type'] = row['Type']
+                tDict['is_nullable'] = row['Null']
+                tDict['column_default'] = row['Default']
+                ttype = row['Type'].lower()
+                if '(' in ttype and 'char' in ttype:
+                    tDict['character_maximum_length'] = ttype.split('(')[1].split(')')[0]
+                else:
+                    tDict['character_maximum_length']= None
+                tDict['numeric_precision'] = None
+                tb_scma.append(tDict)
+            return tb_scma
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 # 列出主键列
 # 返回例: [('rank',), ('title',)]
 def show_primary_key(engine, tb_name) -> list:
@@ -93,8 +119,7 @@ def show_primary_key(engine, tb_name) -> list:
     """
     try:
         with engine.connect() as connection:
-            result = connection.execute(query)
-            return result.fetchall()
+            return connection.execute(query)
     except Exception as e:
         print(f"Error: {e}")
         print(f"INFO: {query}")

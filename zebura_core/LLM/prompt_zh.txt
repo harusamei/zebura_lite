@@ -1,540 +1,347 @@
 ///////////////////////////////////////
-// The MAIN version, taskname and output format in all other languages' version should remain consistent.
-// prompt template， format：<TASK: xxx> ... </TASK>
-// ignore lines starting with '//'
-// NOTE: Modifying the format of taskname and output format will affect ans_extractor.py
+// Chinese special prompts
+///////////////////////////////////////
 
-<TASK: rewrite>
-// 将多轮对话，重写为一条查询语句
-During a conversation, when a user asks data-related questions and the agent should provide the corresponding data analysis based on the user's intent. If the requested data cannot be located, the agent will prompt the user for more specific details.
-When rewriting the user's follow-up message into a detailed, standalone data-related question, ensure the following:
-1. Maintain the original intent of the follow-up message.
-2. Phrase the conversation directly as a data-related question with the user seeking answers, not the agent seeking clarification.
-3. Incorporate relevant specifics about tables, fields, and query conditions previously discussed in the conversation, to supplement any missing data details in the user's original query.
-4. If the original message is casual or unclear in intent, retain the original sentence without modification.
-5. Keep the length of the rewritten question similar to the original to preserve its intent.
-6. Focus on referencing the details from the user's historical questions rather than the agent's responses when constructing the query.
+<TASK: book_intro>
+### Task Description:
+You are a literary expert with extensive knowledge of world literature. Given only the name of an author and one of their novels, use your expertise to craft a vivid and engaging introduction to the novel in Chinese. Your response should provide:
+- A brief biography of the author, including their literary achievements.
+- The historical and cultural background of the novel.
+- A concise yet compelling summary of the story.
+- 作品的主题（如爱情、孤独、成长等）
+- list of the main characters, including their personalities, motivations, key actions, and relationships.
 
-Examples of Refined Standalone Question:
-1. Find all customers located in Germany
-2. Get all product details and sort them by name
-3. Retrieve the first 5 customers who registered in 2021
+### Requirements:
+- Strictly follow the JSON format provided below.
+- use Chinese language for the output.
 
-Conversation History (Sorted by request time from most recent to oldest):
-{history_context}
+### Input:
+Author: {author}
+Title: {title}
 
-Follow Up Input: 
-user: {query}
-
-**NOTE**: DO NOT prompt the user for additional specific information.
-Refined Standalone Question:
-</TASK>
-
-// 
-<TASK: term_expansion>
-Please generate term expansions for a given set of terms. A table is provided with the terms, their corresponding categories, and the language to use for generating the expansion words. The methods for term expansion include synonyms, related terms, and translations.
-Ensure that the expansions are diverse to enrich the vocabulary. If a word has multiple meanings, focus solely on the terms related to its category and avoid exploring other meanings.
-=========================
-Examples of Input:
-
-| Term       | Category       |Output Language|
-|:-----------|:---------------|:--------------|
-| apple      | Brand          |English        |
-| mouse      | Product_name   |Chinese        |
-| innovation | Business       |Japanese       |
-
-=========================
-Examples of Output:
-
-| Term       | Term Expansions                                     |
-|:-----------|:----------------------------------------------------|
-| apple      | Macintosh, iPhone, iPad, tech company, Granny Smith |
-| mouse      | 鼠标, 电子鼠标, 笔记本鼠标, 无线鼠标, 光电鼠标 |
-| innovation | 革新, 発明, 進歩, アイデア, 創造, 技術革新 |
-
-==========================
-NOTE: 
-- please strictly follow the output format of the example above.
-</TASK>
-
-// summary of database
-<TASK: db_summary>
-Below is information about a database, including the tables and their schemas. Please provide a clear and concise summary in {chat_lang} to help the user understand the database. While the goal is to stay within a {limit_length}-word limit, the summary must include table names and key columns, even if it exceeds this limit. Ensure that related tables are grouped together for easier comprehension.
-=========================
-Input:
-{db_info}
-</TASK>
-
-// grouping database tables
-<TASK: tb_grouping>
-You have a database named {db_name}, which contains {table_count} tables. The table names, descriptions, and schemas are provided below. Based on this information, group the tables by similar functionality, placing tables with related purposes into the same group. You are required to assign group name and provide a brief description for each group in {chat_lang}.
-
-Requirements:
-The number of groups must not exceed 12.
-Strictly follow the output format.
-=========================
-Output in JSON format：
-```json
-[
-  {{
-    "group_name": "group_name1",
-    "group_description": "Description of the group 1.",
-    "included_tables": ["table1", "table2", "table3"]
-  }},
-  {{
-    "group_name": "group_name2",
-    "group_description": "Description of the group 2.",
-    "included_tables": ["table4", "table5"]
-  }}
-]
-```
-=========================
-Input:
-{tables_info}
-
-</TASK>
-
-// describe a database table and its columns in natural language and explain it's purposes
-<TASK: db_desc>
-You are a database programming expert. Given the schema of a database table, to make the table easier to understand, please generate a concise description of the table based on its column name and column type, explaining its possible purpose. For each column in the table, provide its description and potential aliases it might use. If the column name is in a language other than {chat_lang}, translate it into {chat_lang}.The generated description should be in {chat_lang}.
-=========================
-Example of Input in Markdown format:
-table_name: Products
-| column_name     | type        |
-|:----------------|:------------|
-| productName     | varchar(80)  |
-| price           | decimal(8,2) |
-| brandName       | varchar(80)  |
-| releaseTime     | datetime(3)  |
-
-=========================
-Example of Output in JSON format:
+### Output example:
 ```json
 {{
-  "table_name": "Products",
-  "table_description": "This table stores detailed information about various products in a retail or e-commerce database.",
-  "columns": [
+  "title": "",               // The title of the novel.
+  "author": "",             // The name of the author.
+  "biography": "",           // A brief overview of the author's life, career, and notable works.
+  "background": "",          // The historical and cultural context of the novel.
+  "summary": "",             // A succinct yet engaging summary of the novel.
+  "themes": "",            // The themes explored in the novel (e.g., love, loneliness, growth).
+  "characters": [
     {{
-      "column_name": "productName",
-      "description": "Contains the name or title of the product.",
-      "translation_and_aliases": ["Product Title", "Item Name", "Product Label"]
+      "name": "",            // The name of the character.
+      "description": ""      // A brief description of the character's personality, motivations, and key actions.
     }},
     {{
-      "column_name": "price",
-      "description": "Records the price of the product, allowing values up to 999,999.99. Essential for pricing and calculations.",
-      "translation_and_aliases": ["Product Price", "Cost", "Selling Price"]
+      ... // Description for each main character.
+    }}  
+  ] 
+}}
+
+```
+</TASK>
+
+
+<TASK: iconic_scenes>
+### Task Description:
+You are a literature expert with extensive knowledge of both classic and modern literary works. Your task is to identify and describe the most iconic scenes from a given novel based on its title and author.
+Each selected scene should be:
+- Memorable and significant within the story’s context.
+- Rich in key details, such as dramatic conflicts, emotional turning points, or pivotal character actions.
+- Clearly described, capturing its essence in a concise yet vivid manner.
+
+### Requirements:
+- Provide at least 10 famous scenes from the novel.
+- Strictly adhere to the JSON format provided.
+- The response must be in Chinese.
+
+### Input:
+Title: {title}
+Author: {author}
+
+### Output example:
+```json
+{{
+  "title": "",           // The title of the novel.
+  "scenes": [
+    {{
+      "scene_number": 1,
+      "scene_title": "",  // The title or description of the scene.
+      "description": ""   // A detailed description of the iconic scene.
     }},
     {{
-      "column_name": "brandName",
-      "description": "Indicates the brand or manufacturer of the product. Helps identify the origin and quality of the product.",
-      "translation_and_aliases": ["Brand", "Manufacturer", "Brand Label"]
+      "scene_number": 2,
+      "scene_title": "",  // The title or description of the scene.
+      "description": ""   // A detailed description of the iconic scene.
+    }},
+    ... // At least 10 scenes
+  ]
+}}
+
+``` 
+</TASK>
+
+<TASK: quotes>
+### Task Description:
+You are a literary expert responsible for curating a collection of notable quotes from the novel {title} by {author}. Your task is to select and present quotes that are:
+- Memorable, impactful, or thought-provoking.
+- Reflective of the novel's themes, characters, or key moments.
+- 提供quotes在书中出现的背景或重要性。
+
+### Requirements:
+- Select at least 10 quotes from the novel.
+- Strictly follow the JSON format provided below.
+- Use Chinese language for the output.
+
+### Input:
+Title: {title}
+Author: {author}
+
+### Output example:
+```json
+{{
+  "title": "",               // The title of the novel.
+  "quotes": [
+    {{
+      "quote": "",           // The selected quote from the novel.
+      "context": ""          // The context or significance of the quote.
     }},
     {{
-      "column_name": "releaseTime",
-      "description": "Records the date and time when the product was added to the inventory or catalog. Helps track availability and shelf life.",
-      "translation_and_aliases": ["Listing Date", "Availability Date", "Product Release Date"]
+      ... // Collection of notable quotes from the novel.
     }}
   ]
 }}
 ```
-=========================
-NOTE: 
-- please strictly follow the output format of the example above when outputting the generated content.
-- The **Column** in the output must correspond one-to-one with the **Column** in the input.
-=========================
-INPUT:
-
-Table_name:{table_name}
-{column_info}
-
-=========================
-OUTPUT:
-
 </TASK>
 
-// analyse the complex SQL
-<TASK: sql_breakdown>
-### Task Description:
-Analyze the input SQL statement and provide a detailed breakdown of the tables, columns, and values used in the SQL statement.
+////////////////////////////////////////////////////
+// plot analysis tasks
+<TASK: long_intro_1>  
+# **Comprehensive and Detailed Novel Introduction**  
 
-1. **Tables:** List all the tables in the SQL statement, including their aliases if they exist.
-2. **Columns:** List all the columns used in the SQL statement, along with their corresponding tables. Include the column aliases if they exist.
-3. **Values:** Extract all values from the WHERE clause, along with the columns and tables they are associated with.
+## **Task Overview**
+You are a seasoned literary analyst who has read all classic literary works. You specialize in writing in-depth and engaging novel introductions. Your task is to create a detailed and comprehensive plot analysis based on the provided book information, highlighting the novel’s appeal in a way that captivates readers and encourages them to explore the book.
 
-### Notes:
-- Please strictly follow the JSON format of the below output example.
-- Replace all single quotes (') with double quotes (") in the values within the SQL statement.
-=========================
-
-### Output example:
-```json
-{{ 
-  "tables": [  
-    {{"name": "table1", "alias": "t1"}},  
-    {{"name": "table2", "alias": "t2"}}  
-  ],  
-  "columns": [  
-    {{"name": "column1", "table": "table1", "alias": "c1"}},  
-    {{"name": "column2", "table": "table1"}},  
-    {{"name": "column3", "table": "table2"}}  
-  ],  
-  "values": [  
-    {{"value": number1, "column": "column1", "table": "table1"}},  
-    {{"value": "string1", "column": "column2", "table": "table2"}}  
-  ]  
-}}
-
-```
-=========================
-### Input SQL Statement:
-{sql_statement}
-
-### Output:
-
-</TASK>
-
-// 改写SQL使输出结果包含更多详情信息
-<TASK: sql_details>
-## Task: Optimize SQL Query for Enhanced Data Details
-
-### Objective
-Rewrite the given SQL query to include more comprehensive data, ensuring the results are intuitive and informative.
+## **Plot Summary and Analysis**
+You have already completed the author’s biography and the novel’s background. Now, your focus is to provide an in-depth analysis of the novel’s main plot and important subplots. You should describe key events, turning points, and the climax in detail.
+Your analysis should not be limited to the provided book details; feel free to expand based on your literary knowledge, adding more insights and details.
 
 ### Guidelines:
-1. **Expand Data**: 
-    - Ensure fields from the WHERE clause are included in the SELECT clause. 
-    - When using aggregate functions (e.g., COUNT, SUM), use the GROUP BY clause for accurate results.
-   
-2. **Improve Clarity**: 
-    - Use aliases for clear column names.
-    - Format numeric or date fields as needed.
-    - Ensure key details are easily accessible at a glance.
-
-3. **Output**: The output must be an SQL query that includes the enhanced data.
-
-### Input Example (Original SQL Query):
-SELECT customer_id, order_date, total_amount
-FROM orders
-WHERE order_date > '2023-01-01';
-
-### Output Example (Rewritten SQL Query with Additional Details):
-SELECT order_id AS "Order ID", 
-       order_date AS "Order Date", 
-       total_amount AS "Total Amount", 
-       customer_name AS "Customer Name"
-FROM orders
-WHERE order_date > '2023-01-01'
-ORDER BY order_date DESC;
-
-======================
-
-### Database schema:
-{dbSchema}
-
-### Input Original SQL Query:
-{sql_statement}
-
-### Output Rewritten SQL Query:
-</TASK>
-
-// recorrect the SQL query
-<TASK: sql_revise>
-You are an SQL programming expert specializing in diagnosing and correcting errors in SQL queries. Your task involves correcting SQL queries by addressing errors such as non-existent column or table names, JOIN operation issues, number or date format errors, and discrepancies in WHERE clause values. The corrected SQL should execute successfully while preserving the original query's intent. Below are the specific requirements:
-1.	Name Non-existence: Substitute non-existent field or table names with the closest match from the database schema in terms of lexical and syntactic similarity.
-2.	Join Errors: Resolve any errors arising from JOIN operations.
-3.	Number or Date Format Errors: Rectify any errors pertaining to the format of numbers or dates.
-4.	Value Issues in WHERE Condition: Replace non-existent values with suggested or semantically similar ones. 
-5. Column Issues in WHERE Condition: Replace the column in the current WHERE condition with a similar column from the database schema. 
-6. Use the 'LIKE' operator instead of '=' operator. 
-7.	Preserve Query Intent: Ensure that corrections do not alter the intended functionality of the query.
-8.	Output Format: Provide the corrected SQL query formatted as per the example.
-=======================
-An example of a corrected SQL query
-
-- Original SQL :
-SELECT e.employee_id, e.first_name, e.last_name, d.department_name FROM Employees e
-
-- Existing Errors：
-   Join Error: The query involves two tables that need to be joined using a JOIN clause.
-
-- Corrected SQL：
-```sql
-SELECT e.employee_id, e.first_name, e.last_name, d.department_name
-FROM Employees e
-JOIN Departments d ON e.department_id = d.department_id;
-```
-=========================
-Follow-up inputs:
-- Database Schema:
-{dbSchema}
-
-- Original SQL：
-{ori_sql}
-
-- Existing Errors：
-{err_msgs}
-
-- Corrected SQL:
-
-</TASK>
-
-// list some sapplication scenarios for this database
-<TASK: scn4db>
-### Task Description:
-Given a database schema, list application scenarios where this database can be used to generate reports, along with the target user groups for these reports. The scenarios should cover diverse application areas and user needs, showcasing the database's versatility and practical value.
+- Provide a structured and detailed introduction to the novel’s main plot and subplots.
+- Include key events, twists, and turning points, explaining their significance.
+- Analyze the impact and consequences of each major event.
+- Add rich descriptive details to enhance readability and comprehension.
+- Summarize the plot using a concise and engaging title.
 
 ### Requirements:
-1. Identify at least {num_scenarios} distinct application scenarios or use cases.
-2. Output the result in JSON format, strictly following the provided output format.
+- Minimum 1,500 characters with substantial detail.
+- The response must be in Chinese.
+- strictly follow the JSON format provided below.
 
-### Input:
-- **Table description:**
-  {tb_prompt}
-
-- **Sample records:**
-  {sample_records}
-
-### Output format:
-```json
-[
-  {{
-    "scenario": "scenario_text1",
-    "description": "description_text1",
-    "target_users": ["userA", "userB"]
-  }},
-  {{
-    "scenario": "scenario_text2",
-    "description": "description_text2",
-    "target_users": ["userC", "userD", "userE"]
-  }}
-]
-```
-
-</TASK>
-
-// generate natural language questions from database schema
-<TASK: sql4db>  
-### 任务描述：  
-根据提供的数据表的描述和表的样例记录，用{chat_lang}生成对该数据库的查询问题。这些问题应反映出{scenario}场景中目标用户{target_users}的兴趣点。  
-
-### 要求：  
-1. 生成{num_questions}组问题与其对应的SQL查询。
-2. 问题需涵盖数据内容查询、数据用途、统计或趋势分析等方面。 
-3. 确保问题与提供的表结构和记录紧密相关。  
-4. 以JSON格式输出，并严格遵循输出示例的格式。  
-
-### 输入：  
-- **表描述：**  
-  {tb_prompt}  
-
-- **示例记录：**  
-  {sample_records}  
-
-### 输出示例：  
-```json
-[
-  {{
-    "question": question_text1,
-    "sql": sql_statement1
-  }},
-  {{
-    "question": question_text2,
-    "sql": sql_statement2
-  }},
-  {{
-    "question": question_text3,
-    "sql": sql
-  }}
-]
-```
-</TASK>
-
-// follow-ups questions for the database
-<TASK: fups4db>
-### 任务描述:
-给定一个数据库表的描述和一条SQL查询，生成用户可能查询的后续问题。 
-
-### 要求:
-1. 用{chat_lang}生成后续问题和对应的SQL查询，确保问题与原始查询和数据库表相关。
-2. 以JSON格式输出，并严格遵循Output Example的格式。
-
-### Input:
-
-- **Table description:**
-  {tb_prompt}
-
-- **Sample records:**
-  {sample_records}
-
-- **Initial SQL Query:**
-  {sql_query}
-
-- **Query result:**
-  {sql_result}
-
-### Output Example:
-
-```json
-[
-  {{
-    "question": question_text1,
-    "sql": sql_statement1
-  }},
-  {{
-    "question": question_text2,
-    "sql": sql_statement2
-  }},
-  {{
-    "question": question_text3,
-    "sql": sql
-  }}
-]
-```
-</TASK>
-
-<TASK: translation>
-### Task Description:
-Translate the following JSON object into English. The JSON contains a text and its language. Translate only the text to {trgt_lang} and return the result in JSON format
-### Requirements:
-Please strictly follow the JSON format of the provided output example.
-
-### Input Example:
-[
-  {{
-    "text": "你好，世界",
-    "language": "Chinese"
-  }},
-  {{
-    "text": "Bonjour le monde",
-    "language": "French"
-  }}
-]
-### Output Example:
-
-```json
-[
-  {{
-    "source": "你好，世界",
-    "target": "Hello, world"
-  }},
-  {{
-    "source": "Bonjour le monde",
-    "target": "Hello, world"
-  }}
-]
-```
-### Input:
-{input}
-
-### Output:
-</TASK>
-
-// Select the database tables required for the query
-<TASK: tables_choose>
-### Task Description:
-Given the descriptions of multiple database tables and a natural language sentence in {chat_lang}, determine whether the sentence is a query related to the database. 
-If it is, select one or more relevant database table names. 
-If not, handle it as a chat and generate a response in {chat_lang}.
-
-### Requirements:
-Please strictly follow the JSON format of the output example.
-
-### Output example:
-
-1. **If the input is a query related to the database:**
+### Input
 ```json
 {{
-  "tables": ["table1", "table2"]
-}}
-```
-2. **If the input is unrelated to the given database:**
-```json
-{{
-  "chat": "response1"
+  "book_details": {book_info}
 }}
 ```
 
-### Input: 
-
-** Natural Language Sentence: **
-{question}
-** Database Schema: **
-{db_info}
-
-### Output:
-</TASK>
-
-// generate SQL query based on natural language input and database schema
-<TASK: nl_to_sql>
-### Task Description:
-Generate an SQL query based on a user's natural language input and a given database schema. The output should include the SQL statement and a detailed breakdown of the tables, columns, and values used in the SQL Statement.
-
-### Requirements:
-Please strictly follow the JSON format of the output example.
-
-### Output Example:
+### Output format
 ```json
 {{
-  "sql": "sql statement",
-  "tables": [
-    {{"name": "table_name1", "alias": "t1"}},
-    {{"name": "table_name2", "alias": "t2"}}
-  ],
-  "columns": [
-    {{"name": "column_name1", "table": "table_name1", "alias": "c1"}},
-    {{"name": "column_name2", "table": "table_name1"}},
-    {{"name": "column_name3", "table": "table_name1"}},
-    {{"name": "column_name4", "table": "table_name2"}},
-    {{"name": "column_name5", "table": "table_name2", "alias": "c5"}}
-  ],
-  "values": [
-    {{"value": "value1", "column": "column_name1", "table": "table_name1"}},
-    {{"value": v2, "column": "column_name2", "table": "table_name1"}}
+  "plot_summary": "",      // A captivating title summarizing the plot.
+  "plot_introduction": ""  // A detailed introduction covering key events, twists, and turning points.
+}}
+```
+
+</TASK>
+
+// character analysis tasks
+<TASK: long_intro_2>
+# **Comprehensive and Detailed Novel Introduction**  
+
+## **Task Overview**
+You are a seasoned literary analyst with expertise in classic literature. Your task is to provide **a detailed character analysis** based on the given book information, highlighting key traits and developments to engage readers.
+
+### **Character Analysis (At Least 1,500 characters)**
+You have already completed the author’s biography, novel background, and plot analysis. Now, focus on analyzing the main characters, Your analysis should include:
+- A description of each character's personality, motivations, and key traits. you'd better provide some notable quotes or actions that reveal the characters' depth and complexity.
+- An exploration of the relationships between characters and how they influence the plot.
+- An evaluation of the characters' development throughout the story.
+- A concise and engaging title summarizing each character’s fate.
+
+### **Requirements**
+- Minimum 1,500 characters with substantial detail.
+- The response must be in Chinese.
+- Strictly follow the JSON format provided below.
+
+### **Input**
+```json
+{{
+  "book_details": {book_info}
+}}
+
+### **Output**
+```json
+{{
+  "character_summary": "",        // A concise and engaging title summarizing the character’s fate.
+  "characters": ""    // A detailed character analysis, including personality, motivations, and key traits.
+}}
+
+</TASK>
+
+// iconic scenes tasks
+<TASK: long_intro_3>
+# **Comprehensive and Detailed Novel Introduction**  
+
+## **Task Overview**
+As a seasoned literary analyst with expertise in classic literature, your task is to provide a **detailed analysis of iconic scenes** based on the given book information. Your insights should highlight key moments that define the novel’s emotions, conflicts, and character development.
+
+### **Iconic Scene Analysis**
+You have already completed the author’s biography, novel background, and plot analysis. Now, your focus is to analyze at least 10 iconic scenes, including:
+- A vivid description of each scene, covering its background, events, and character dialogues.
+- Detailed insights into its significance within the novel.
+- An exploration of how the scene conveys emotions, conflicts, and character depth.
+- A minimum of 300 Chinese characters per scene, providing substantial detail.
+- Your personal commentary to enhance reader understanding.
+- A captivating title for each scene to engage readers.
+
+### **Requirements**
+- The response must be in Chinese.
+- Strictly follow the JSON format below.
+
+### **Input**
+```json
+{{
+  "book_details": {book_info}
+}}
+
+### **Output**
+```json
+{{
+  "scene_summary": "",  // A captivating title summarizing the scene analysis.
+  "scenes": [
+    {{
+      "scene_number": 1,
+      "scene_title": "",  // The title or description of the scene.
+      "description": ""   // A detailed breakdown of the iconic scene.
+    }},
+    ...  // At least 10 iconic scenes from the novel.
+  ]        
+}}
+```
+</TASK>
+
+// literary value tasks
+<TASK: long_intro_4>
+# **Comprehensive and Detailed Novel Introduction**
+
+## **Task Overview**
+As a literary critic with deep expertise in classic literature, your task is to analyze the literary value of the provided book. Your analysis should cover its literary significance, social impact, and relevance to contemporary society.
+
+### **Analysis Requirements**
+
+- Summary of Literary Value: Briefly summarize the novel's literary significance.
+- Impact on Literature and Society: Discuss how the novel has influenced literature, philosophy, or society. Include whether it's regarded as a classic, its impact on future writers, and its influence on social movements.
+- Relevance Today: Discuss the novel's relevance to modern readers and its reflection on contemporary issues.
+Relevance Today: Analyze the novel's relevance to modern readers and its reflection on contemporary issues.
+- Reading Value: Explain why the novel is worth reading and provide recommendations.
+- Similar Works: Recommend 3 to 5 similar works or authors.
+
+### **Output Format**:
+- The response should be no less than 1500 characters in Chinese.
+- Strictly follow the JSON format of output.
+
+### **Input**
+```json
+{{
+  "book_details": {book_info}
+}}
+```
+
+### **Output**
+```json
+{{
+  "significance": "",
+  "reception_and_impact": "",
+  "relevance_today": "",
+  "reading_value": "",
+  "similar_works": [
+    {{
+      "title": "",
+      "author": ""
+    }},
+    {{
+      // Similar works or authors
+    }}
   ]
 }}
 
-### Input:
-** User Query: **
-{question}
-** Database Schema: **
-{db_info}
-** Text-to-SQL Examples with json format: **
-{examples}
-
-### Output:
-
+```
 </TASK>
 
-<TASK: data_exploration>
-### Task Description:
-You are given the schema of a database table, an SQL query, and its result. Your task is to infer what aspects of the database table the user might be interested in and generate several natural language questions. Consider the following scenarios:
-- If the result is empty, generate several broader natural language query suggestions to help the user adjust the query conditions and obtain meaningful results.
-- If the query has results, analyze the data and conditions in the query to infer possible interests or follow-up questions the user might have.
+// themes, writing style, and symbolism tasks
+<TASK: long_intro_5>
+# **In-Depth Novel Analysis**
 
-### Requirements:
-Please strictly follow the JSON format of the output example. not trailing commas in the JSON object.
+## **Task Overview**
+As an experienced literary critic, your role is to write a detailed introduction to a novel for general readers. You have already completed the character analysis and plot summary. Now, focus on an in-depth exploration of the novel’s themes, writing style, and symbolism to enhance readers' understanding of its deeper meaning and artistic value.  
 
-### Output Example:
+### **Analysis Guidelines**
+- Discuss the novel’s major themes with multiple examples, including references to specific passages.  
+- Examine the author's writing style, including narrative techniques and literary devices.  
+- Analyze symbolism, motifs, and philosophical insights within the novel.  
+
+### **Requirements**
+- The output must be in Chinese and at least 1,500 characters long.  
+- Strictly follow the JSON output format below.  
+
+### **Input**
 ```json
 {{
-  "actions": [
-    "<suggesion1>",
-    "<suggesion2>"
-  ],
-  "questions": [
-    "<question1>",
-    "<question2>"
-  ]
+  "book_details": {book_info}
 }}
 ```
+### **Output**
+```json
+{{
+  "title": "",            // The title of the novel.  
+  "themes": "",           // Major themes with multiple examples.  
+  "write_style": "",      // The author's writing style, narrative techniques, and literary devices.  
+  "symbolism": ""         // Symbolism, motifs, and philosophical insights in the novel.  
+}}  
+
+```
+</TASK>
+
+
+
+<TASK: redbook_rewriter>
+### Task Description  
+
+你是一位资深的小红书博主📱，擅长用生动、活泼的语言风格介绍世界名著🎭📖。下面是一本书的信息，你的任务是根据输入信息，生成一篇小红书风格的书籍介绍方案，并增加适度的个人评论。
+
+### Requirements
+请确保你的文案满足以下要求：
+
+- 必须包括所有输入信息，并对情节，关键人物，重要场景等进行扩展， 不能遗漏📝。
+- 用汉语输出文案，** 至少 4000 汉字 **，足够博主讲述 10 分钟以上⏳💬，内容详尽、丰富、有感染力，避免简单概括或敷衍的介绍。
+- 字数一定要够多，如果太短，请继续扩展内容📚🔍。
+- 风格轻松有趣🎭💡：语言活泼、有代入感，避免学术化表达，让读者读完有“种草”冲动🔥。
+- 适当使用 emoji🎨：增强视觉吸引力，让内容更易读、更具互动感（🔥💡🎭📖💔😍等）。
+- 结合你阅读这部小说时的心情，对小说做一些个人评论📢💡
+你的目标是用最吸引人的方式呈现这本书的魅力📚🔥，让读者不仅记住它，还能产生强烈的阅读兴趣！
 
 ### Input:
-** Database Schema: **
-{db_info}
-** SQL Query: **
-{sql_query}
-** SQL Query result: **
-{sql_result}
+** 书籍信息 **
+```json
+{{
+  "book_details": {book_info}
+}}
 
 ### Output:
+  请用markdown格式输出你的文案。
+
 </TASK>
+
+

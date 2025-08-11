@@ -20,12 +20,7 @@ class AnsExtractor:
         }
 
     def output_extr(self, taskname, llm_answer):
-        result = copy.copy(self.result)
-        # LLM 返回错误信息
-        if 'err' in llm_answer.lower():
-            result['status'] = 'failed'
-            result['msg'] = 'err_llm:'+llm_answer
-            return result
+        
         # 存在解析方法
         callFunc = self.tasks.get(taskname,self.parse_json)
         return callFunc(llm_answer)
@@ -89,6 +84,9 @@ class AnsExtractor:
     # 解析从LLM获得的SQL提取信息
     def parse_json(self, llm_answer) -> dict:
         result = copy.copy(self.result)
+
+        llm_answer = re.sub(r'[\x00-\x1F]+', ' ', llm_answer)  # 替换控制字符为单个空格
+        llm_answer = llm_answer.strip()  # 去除首尾空格
 
         tlist = llm_answer.split('```json', 1)
         if len(tlist) >1:
