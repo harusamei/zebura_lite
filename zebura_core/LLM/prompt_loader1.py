@@ -1,4 +1,5 @@
 # 读取 prompt.txt中的指令模板，用于生成prompt
+# prompt文件由base_prompt和lang_prompt组成, base_prompt为默认英文模板，lang_prompt为语言特定的补充模板
 ############################################
 import os
 import sys
@@ -26,9 +27,8 @@ class Prompt_generator():
             if lang is None:
                 lang = z_config['Training', 'chat_lang']
             langcode = langname2code(lang)
-            if langcode in ['zh','ja']:    # 只支持中日语言模板，其余使用默认英语模板
-                lang_prompt = prompt_file.replace('.txt', f'_{langcode}.txt')  # language special prompt file
-
+            # language special prompt file
+            lang_prompt = prompt_file.replace('.txt', f'_{langcode}.txt')  
             if self.load_prompt(prompt_file, lang_prompt):
                 logging.debug("Prompt_generator init success")
             else:

@@ -1,11 +1,11 @@
 ################################################
 # 非全局，子模块内部使用的default or constant values
-# D, default; C, constant, S, setting
+# D, default; C, constant, S, setting, Z, zebura
 ################################################
 import types
 
 C_SOFTWARE_NAME = 'zebura'       # name of our software icon file name
-C_ADM_dbServer = 'ADMdatabase'   # name of system relation database server
+C_ADM_dbServer = 'ADMdatabase'   # name of system database server
 C_ADM_Search = 'ADMsearch'       # name of system search server
 
 D_TOP_K = 5   # default top k for search
@@ -33,14 +33,15 @@ Z_CASES_TBNAME = 'cases_{pj_name}'  # admdb中的cases表名,存放于 [ADMdatab
 Z_CASES_INDEX = 'zebura_cases_{pj_name}'   # cases索引名
 Z_ALIGN_DAYS = 7   # 同步频率， 每周rdb 与 es 同步一次
 # chat_lang, 该项目默认交流语言
-
-Z_META_PROJECT = tuple(['database_name','domain','db_desc','chat_lang','possessor'])# 项目信息, 所有表整合的prompt，数据归属
 # val_lang, 字段内容的语言
-Z_META_FIELDS = tuple(['table_name','column_name','hypernym','column_desc','column_type',
-                'column_key','column_length','val_lang', 'sample_data','comment']) # 字段信息
 # tb_lang，字段本身的语言
-Z_META_TABLES = tuple(['table_name','tb_desc','column_count','tb_prompt','tb_lang',
-                'group','tags','sample_data'])
+# 项目信息, 所有表整合的prompt，数据归属
+Z_META_PROJECT = tuple(['database_name','domain','db_desc','chat_lang','possessor','db_prompt'])
+# 字段信息
+Z_META_FIELDS = tuple(['table_name','column_name','hypernym','column_desc','column_type',
+                'column_key','column_length','val_lang', 'examples','alias','comment']) 
+Z_META_TABLES = tuple(['table_name','tb_desc','column_count','tb_prompt','tb_promptlit',
+                       'tb_lang', 'group_name','group_desc','group_prompt','tags','examples'])
 Z_META_TERMS = tuple(['term_name','term_desc','related_tables','ttype','grp_prompt'])
 # 类型采用pandas的类型，解析时 datetime需要parse_dates=date_columns
 Z_CASES_FIELDS = types.MappingProxyType({

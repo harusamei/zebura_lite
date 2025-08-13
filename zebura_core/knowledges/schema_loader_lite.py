@@ -1,5 +1,5 @@
 # 关于当前DataBase的schema信息, 这个信息做为一种知识用于schema linkage,prompt and so on
-# 从xls中读取schema信息
+# lite版从xls中读取schema信息
 import sys,os,logging
 sys.path.insert(0, os.getcwd().lower())
 import pandas as pd
@@ -50,19 +50,20 @@ class ScmaLoader:
         wk_dir = os.getcwd()
         xls_name = os.path.join(wk_dir, f"{path}/{pj_name}/{xls_name}")
         meta_dfs = pd.read_excel(xls_name, sheet_name=None)
-        
-        self.project = meta_dfs['database']   # list(const.Z_META_PROJECT)
+        self.project = meta_dfs['database']   #  list(const.Z_META_PROJECT)
+        self.project = self.project.fillna('')  # 将 NaN 和 None 替换为 ''
         tb_df = meta_dfs['tables']            #  list(const.Z_META_TABLES)
-        col_df = meta_dfs['fields']           #  [list(const.Z_META_FIELDS)
+        tb_df = tb_df.fillna('')  # 将 NaN 和 None 替换为 ''
+        col_df = meta_dfs['fields']           #  list(const.Z_META_FIELDS)
+        col_df = col_df.fillna('')  # 将 NaN 和 None 替换为 ''
         pj_cols = self.project.columns.tolist()
         tb_cols = tb_df.columns.tolist()
         col_cols = col_df.columns.tolist()
         if set(pj_cols) != set(const.Z_META_PROJECT) or set(tb_cols) != set(const.Z_META_TABLES) or set(col_cols) != set(const.Z_META_FIELDS):
-            print('different in pj_df',set(pj_cols)-set(const.Z_META_PROJECT))
-            print('different in tb_df',set(tb_cols)-set(const.Z_META_TABLES))
-            print('different in col_df',set(col_cols)-set(const.Z_META_FIELDS))
-            raise ValueError(f"Metadata file {xls_name} is not correct")
-        
+            print('diff in pj_df',set(pj_cols)-set(const.Z_META_PROJECT))
+            print('diff in tb_df',set(tb_cols)-set(const.Z_META_TABLES))
+            print('diff in col_df',set(col_cols)-set(const.Z_META_FIELDS))
+            raise ValueError(f"format of metadata file {xls_name} is not correct")
         dfList = {}
         for _, row in tb_df.iterrows():
             tb_name = row['table_name']

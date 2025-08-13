@@ -60,7 +60,7 @@ class CSV2SQL:
     
     def saveInDB(self, tb_name, df, fields):
         print(f"Loading {tb_name} to DB, the total rows: {len(df)}")
-        cols_types = {k: v.name for k, v in df.dtypes.to_dict().items()}
+        #cols_types = {k: v.name for k, v in df.dtypes.to_dict().items()}
         col_Names = fields.keys()
         for i in range(0, len(df), 1000):
             rows = df[i:i+1000]
@@ -72,13 +72,11 @@ class CSV2SQL:
 
 # Example usage
 if __name__ == "__main__":
-    # 文件所在目录 ..\zebura_db\training\le_products\raw data
-    # python dbaccess/postgres/csv2psql.py --server_name Postgres1 --db_name IMDB --csv_path "training/IMDB/raw data"
     from zebura_core.placeholder import make_dbServer
     
-    s_name = 'Postgres1'
-    db_name = 'imdb1'
-    csv_path = "training/imdb/raw data"
+    s_name = 'Mysql1'
+    db_name = 'ebook'
+    csv_path = "training/book/raw_data"
     dbServer = make_dbServer(s_name)
     
     csv_path = os.path.join(os.getcwd(), csv_path)

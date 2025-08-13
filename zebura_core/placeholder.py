@@ -1,4 +1,6 @@
 # 一些需要保持一致的数据结构
+#
+############################
 import sys,os
 sys.path.insert(0, os.getcwd().lower())
 from settings import z_config

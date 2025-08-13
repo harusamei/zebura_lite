@@ -4,8 +4,8 @@
 import sys,os
 sys.path.insert(0, os.getcwd().lower())
 from zebura_core.utils.conndb1 import connect, db_execute
-import ops_p1 as ops_p
-import ops_m1 as ops_m
+import dbaccess.ops_p1 as ops_p
+import dbaccess.ops_m1 as ops_m
 import logging
 import json
 

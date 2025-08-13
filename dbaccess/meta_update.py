@@ -1,12 +1,15 @@
 # metadata.xlsx， 即表的元数据, 存放在admdb中admdata db下
 # 该表可以用于prompt, 以及用户对数据库本身的提问，比如我有哪些数据表，每个表有哪些字段等
+# 在 zebura_lit 不适用
+#########################################
+
 import sys,os
 sys.path.insert(0, os.getcwd().lower())
 from settings import z_config
 import zebura_core.constants as const
 from zebura_core.placeholder import make_dbServer
 from discard.conndb import connect
-from dbaccess.csv2sql import CSV2SQL
+from dbaccess.csv2sql1 import CSV2SQL
 import pandas as pd
 
 def read_metatb(pj_name, chat_lang):

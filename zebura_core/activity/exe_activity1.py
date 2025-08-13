@@ -49,6 +49,7 @@ class ExeActivity:
         answer["format"] = "dict"
         try:
             result = db_execute(self.db_eng, sql)
+            result = result.fetchall() if result else []
             if len(result) > 0:
                 answer["msg"] = result
             else:
@@ -91,7 +92,8 @@ WHERE revenuemillions = (SELECT MAX(revenuemillions) FROM imdb_movie_dataset);
 """
     
     results = exr.exeSQL(sql)
+    print(results)
     df = exr.sql2df(sql)
     if not df.empty:
-        print(df.head())
+        print(df.columns.to_list())
 

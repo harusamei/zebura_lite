@@ -3,7 +3,7 @@
 # ____/_ \____   
 # \  ___\ \  /  
 #  \/ /  \/ /       designed by Yao, 
-#  / /\__/_/\       who is a beginner in front-end dev.
+#  / /\__/_/\       a beginner in front-end dev.
 # /__\ \_____\
 #     \  /
 #      \/

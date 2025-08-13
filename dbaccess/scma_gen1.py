@@ -72,7 +72,7 @@ class ScmaGen:
         
         tStr = json.dumps(result_dicts, ensure_ascii=False, default=default_serializer)
         # print(json.loads(tStr))
-        tb_df.loc[tb_df['table_name'] == tb_name, 'sample_data'] = tStr
+        tb_df.loc[tb_df['table_name'] == tb_name, 'examples'] = tStr
         
         fd_df = pd.DataFrame(tb_scma,columns=['column_name','data_type','character_maximum_length']) # 从字典生成dataframe
         fd_df['table_name'] = tb_name
@@ -82,7 +82,7 @@ class ScmaGen:
         # 添加实例和实例所用语言
         for key in ex_df.columns.tolist():
             one_col = ex_df[key].tolist()
-            fd_df.loc[fd_df['column_name']==key, 'sample_data'] = str(one_col)
+            fd_df.loc[fd_df['column_name']==key, 'examples'] = str(one_col)
             # 只有字符类型才检测语言
             column_type_series = fd_df.loc[fd_df['column_name'] == key, 'column_type']
             # Check for 'char' or 'text' in the column_type
@@ -142,7 +142,7 @@ class ScmaGen:
     async def tb_enhance(self, meta_xls):
         self.scma_dfs = pd.read_excel(meta_xls, sheet_name=None)
         tb_df = self.scma_dfs['tables']
-        tb_df['group'] = tb_df['group'].astype('object')
+        tb_df['group_name'] = tb_df['group_name'].astype('object')
         tb_df['tags'] = tb_df['tags'].astype('object')
         gt_df = self.scma_dfs['terms']
         groupList = gt_df[gt_df['ttype']=='group'].to_dict(orient='records')
@@ -160,7 +160,7 @@ class ScmaGen:
         tmpl = self.prompter.tasks['tb_classification']
         for _, row in tb_df.iterrows():
             print(row['table_name'])
-            samples = json.loads(row['sample_data'])
+            samples = json.loads(row['examples'])
             s_df = pd.DataFrame(samples)
             tb_md = s_df.to_markdown(index=False)
             table_info = f"table name:{row['table_name']}\ncolumns and samples:\n{tb_md}"
@@ -170,17 +170,17 @@ class ScmaGen:
             print(f"length of query: {len(query)}")
             llm_answ = await self.llm.ask_llm(query, '')
             result = self.ans_extr.output_extr('tb_enhance', llm_answ)
-            if result['status'] == 'failed' or 'group' not in result['msg']:
+            if result['status'] == 'failed' or 'group_name' not in result['msg']:
                 print(f"Failed to extract llm answer: {llm_answ}")
                 continue
             result = result['msg']
-            tb_df.loc[tb_df['table_name']==row['table_name'], 'group'] = result['group']
+            tb_df.loc[tb_df['table_name']==row['table_name'], 'group_name'] = result['group_name']
             tb_df.loc[tb_df['table_name']==row['table_name'], 'tags'] = ', '.join(result['tags'])
             tb_name = row['table_name']
-            if result['group'] not in grpDict:
-                print(f"Group not found: {result['group']}")
+            if result['group_name'] not in grpDict:
+                print(f"Group not found: {result['group_name']}")
             else:
-                grpDict[result['group']].append(tb_name)
+                grpDict[result['group_name']].append(tb_name)
             
             for tag in result['tags']:
                 if tag not in tagDict:
@@ -211,7 +211,7 @@ class ScmaGen:
         cat_sorter = {hyperItem['term_name']: [] for hyperItem in hypernyms}
         hypernym_list = ', '.join([f"{hyperItem['term_name']}" for hyperItem in hypernyms])
         hypernym_list = f"[ {hypernym_list} ]"
-        selected = ['table_name','column_name','column_type','val_lang','sample_data']
+        selected = ['table_name','column_name','column_type','val_lang','examples']
         tmpl = self.prompter.tasks['column_hypernym']
         # colnum_name: hypernym
         col_hyper = {}
@@ -280,7 +280,7 @@ class ScmaGen:
             tb_name = row['table_name']
             print(f"Table: {tb_name}")
             tdf = fd_df[fd_df['table_name']==tb_name]
-            tdf = tdf[['column_name', 'column_type', 'val_lang', 'sample_data']]
+            tdf = tdf[['column_name', 'column_type', 'val_lang', 'examples']]
             tmd = tdf.to_markdown(index=False)
             tb_info = f"table name:{tb_name}\ncolumns and samples:\n{tmd}"
             query = tmpl.format(tb_info=tb_info,chat_lang=self.lang)
@@ -433,7 +433,7 @@ class ScmaGen:
             for tb_name in related_tb:
                 fieldInfo.append(f"table name:{tb_name}")
                 tdf = fd_df[fd_df['table_name']==tb_name]
-                tdf = tdf[['column_name', 'column_type', 'val_lang', 'sample_data']]
+                tdf = tdf[['column_name', 'column_type', 'val_lang', 'examples']]
                 tmd = tdf.to_markdown(index=False)
                 fieldInfo.append(tmd)
                 allLen += len(tmd)
@@ -543,7 +543,7 @@ if __name__ == '__main__':
 
     s_name = 'Mysql1'
     dbServer = make_dbServer(s_name)
-    dbServer['db_name'] = 'olist'
+    dbServer['db_name'] = 'ebook'
     # 创建存放文件的目录
     out_path=f'{const.S_TRAINING_PATH}/{dbServer["db_name"]}'
     wk_dir = os.getcwd()
@@ -564,4 +564,5 @@ if __name__ == '__main__':
     # 4. 生成 table, db描述
     asyncio.run(mg.table_description(xls_name))
     asyncio.run(mg.db_description(xls_name))
+    print('done')
 

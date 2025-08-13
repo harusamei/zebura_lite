@@ -337,8 +337,8 @@ async def apply(request):
     return answ
 
 async def main():
-    questions = ['排名前十的电影',
-                 '有没有即是演员又是导演的',
+    questions = ['作者名包含但丁的书',
+                 '作者名含但丁的书一共有多少本',
                 '演员 Christian Bale, Heath Ledger, Aaron Eckhart, Michael Caine 出演的电影中，哪部电影的 Metascore 最高？',
                 '请告诉我盗梦空间的详细信息',
                 '这是一部什么类型的电影',
@@ -346,7 +346,7 @@ async def main():
                 'What is the average metascore of the movies in the dataset?',
                 '列出可以抽烟的餐厅']
        
-    for msg in questions:
+    for msg in questions[:2]:
         start = time.time()
         request = make_a_req(msg)
         print(f"=============\nQuestion: {msg}")
@@ -360,4 +360,5 @@ async def main():
    
 if __name__ == "__main__":
     asyncio.run(main())
+    print("Done")
     

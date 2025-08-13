@@ -5,7 +5,7 @@ class Aggregate:
 
     # main func, gathering/combining all info into anawer
     def gathering(self, pipeline) ->dict:
-
+        print(f"gathering: {pipeline}")
         resp = self.make_answ()
         resp['question'] = pipeline[-1].get('question','')      # 用户提问
         resp['status'] = 'failed'

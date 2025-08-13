@@ -76,6 +76,7 @@ def connect(dbServer) -> object:
 
 # session为None时，创建会话，执行SQL查询，关闭会话
 # session不为None时，执行SQL查询，不关闭会话
+# return cursorResult
 def db_execute(engine,sql_query):
     try:
         session = make_dbSession(engine)
@@ -101,5 +102,5 @@ if __name__ == "__main__":
     sql_query = "SELECT current_database();"        # for postgres
     sql_query = "SHOW DATABASES"                    # for mysql
     result = db_execute(engine, sql_query)
-    print(result)
-    
+    print(result.fetchall())
+    print("Database connection test completed.")
