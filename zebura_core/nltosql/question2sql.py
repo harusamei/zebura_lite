@@ -107,9 +107,9 @@ class Question2SQL:
         tmpl = self.prompter.tasks['tables_choose']
         query = tmpl.format(chat_lang=self.chat_lang, question=question, db_info=db_info)
         # Track the query
-        outfile = open('tmpOut.txt', 'a', encoding='utf-8-sig')
-        outfile.write(query)
-        outfile.write("\n------------\n")
+        # outfile = open('tmpOut.txt', 'a', encoding='utf-8-sig')
+        # outfile.write(query)
+        # outfile.write("\n------------\n")
 
         llm_answ = await self.llm.ask_llm(query, '')
         result = self.ans_ext.output_extr('tables_choose',llm_answ)

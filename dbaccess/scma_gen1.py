@@ -38,7 +38,7 @@ class ScmaGen:
         self.lang = lang                            # 生成元信息所用语言
         self.MAX_GROUP = 10                         # 最大group数
         self.MAX_TAG = 15                           # 最大tag数
-        self.MAX_HYPERFIELD = 100                   # 最大hyperfield数
+        self.MAX_HYPERFIELD = 100                   # 最大hyperfield数,上位词
         
         self.database = const.Z_META_PROJECT        # 项目信息
         self.fields = const.Z_META_FIELDS           # 字段信息
@@ -73,8 +73,8 @@ class ScmaGen:
         tStr = json.dumps(result_dicts, ensure_ascii=False, default=default_serializer)
         # print(json.loads(tStr))
         tb_df.loc[tb_df['table_name'] == tb_name, 'examples'] = tStr
-        
-        fd_df = pd.DataFrame(tb_scma,columns=['column_name','data_type','character_maximum_length']) # 从字典生成dataframe
+        # 从字典生成dataframe
+        fd_df = pd.DataFrame(tb_scma,columns=['column_name','data_type','character_maximum_length']) 
         fd_df['table_name'] = tb_name
         fd_df.rename(columns={'data_type':'column_type','character_maximum_length':'column_length'}, inplace=True)
         for col in ['column_name','column_type']:
@@ -89,8 +89,6 @@ class ScmaGen:
             str_flag = column_type_series.str.contains('char', case=False).any()
             str_flag = str_flag or column_type_series.str.contains('text', case=False).any()
 
-            # str_flag = fd_df.loc[fd_df['column_name'] == key, 'column_type'].str.contains('char', case=False).any()
-            # str_flag = str_flag or fd_df.loc[fd_df['column_name'] == key, 'column_type'].str.contains('text', case=False).any()
             if str_flag:
                 langCode = detect_language(' '.join(one_col))
                 if langCode is not None:
@@ -116,7 +114,7 @@ class ScmaGen:
                         'terms':pd.DataFrame(columns = self.terms)
                         }
         tpj = {'database_name':self.db_name,
-               'chat_lang':self.lang,
+                'chat_lang':self.lang,
                 'possessor': const.C_SOFTWARE_NAME
         }
         self.scma_dfs['database'] = pd.concat([self.scma_dfs['database'], pd.DataFrame([tpj])], ignore_index=True)
@@ -165,22 +163,24 @@ class ScmaGen:
             tb_md = s_df.to_markdown(index=False)
             table_info = f"table name:{row['table_name']}\ncolumns and samples:\n{tb_md}"
             query = tmpl.format(table_info=table_info, group_info=group_Info, tag_info=tag_Info)
-            # with open('tem.out', 'a', encoding='utf-8') as f:
-            #     f.write(query + '\n')
             print(f"length of query: {len(query)}")
             llm_answ = await self.llm.ask_llm(query, '')
+            with open('tem.out', 'a', encoding='utf-8') as f:
+                f.write(query + '\n')
+                f.write(llm_answ + '\n------------\n')
+
             result = self.ans_extr.output_extr('tb_enhance', llm_answ)
-            if result['status'] == 'failed' or 'group_name' not in result['msg']:
+            if result['status'] == 'failed' or 'group' not in result['msg']:
                 print(f"Failed to extract llm answer: {llm_answ}")
                 continue
             result = result['msg']
-            tb_df.loc[tb_df['table_name']==row['table_name'], 'group_name'] = result['group_name']
+            tb_df.loc[tb_df['table_name']==row['table_name'], 'group_name'] = result['group']
             tb_df.loc[tb_df['table_name']==row['table_name'], 'tags'] = ', '.join(result['tags'])
             tb_name = row['table_name']
-            if result['group_name'] not in grpDict:
-                print(f"Group not found: {result['group_name']}")
+            if result['group'] not in grpDict:
+                print(f"Group not found: {result['group']}")
             else:
-                grpDict[result['group_name']].append(tb_name)
+                grpDict[result['group']].append(tb_name)
             
             for tag in result['tags']:
                 if tag not in tagDict:
@@ -323,7 +323,7 @@ class ScmaGen:
         # 生成table grouping
         tb_df = self.scma_dfs['tables']
         pj_df = self.scma_dfs['database']
-        db_name = pj_df['database_name'][0] 
+        db_name = pj_df['database_name'][0] #表的第一行
         # 采用随机采样，处理表个数很多时情况
         table_count = tb_df.shape[0]
         one_permutation = random.sample(range(table_count), table_count)
@@ -347,8 +347,8 @@ class ScmaGen:
         for tItem in infoList:
             query = tmpl.format(db_name=db_name, tables_info=tItem['tb_info'])
             llm_answ = await self.llm.ask_llm(query, '')
-            with open('tem.out', 'a', encoding='utf-8') as f:
-                f.write(query + '\n')
+            # with open('tem.out', 'a', encoding='utf-8') as f:
+            #     f.write(query + '\n')
             result = self.ans_extr.output_extr('db_glossary',llm_answ)
             if result['status'] == 'failed':
                 print(f"Failed to extract llm answer: {llm_answ}")
@@ -386,13 +386,13 @@ class ScmaGen:
         gt_df['ttype'] = 'group'
         tag_df = pd.DataFrame(tags, columns=['standard_term','description'])
         tag_df['ttype'] = 'tag'
+        print(tag_df.to_dict(orient='records'))
+        
         gt_df = pd.concat([gt_df, tag_df], ignore_index=True)
         gt_df.rename(columns={'standard_term':'term_name','description':'term_desc'}, inplace=True)
         term_df = self.scma_dfs['terms']
         term_df['term_name'] = gt_df['term_name']
         term_df.update(gt_df[['term_desc', 'ttype']], overwrite=True)
-        # term_df['term_desc'] = gt_df['term_desc']
-        # term_df['ttype'] = gt_df['ttype']
         
         self.output_schma(meta_xls)
         print(f"Group and tag list are saved to {meta_xls}")
@@ -451,8 +451,8 @@ class ScmaGen:
         for b in batch:
             query = tmpl.format(column_info='\n'.join(b))
             llm_answ = await self.llm.ask_llm(query, '')
-            # with open('tem.out', 'a', encoding='utf-8') as f:
-            #     f.write(query + '\n')
+            with open('tem.out', 'a', encoding='utf-8') as f:
+                f.write(query + '\n')
             result = self.ans_extr.output_extr('column_grouping', llm_answ)
             if result['status'] == 'failed':
                 print(f"Failed to extract llm answer: {llm_answ}")
@@ -481,10 +481,8 @@ class ScmaGen:
     async def db_description(self, meta_xls):
         self.scma_dfs = pd.read_excel(meta_xls, sheet_name=None)        
         term_df = self.scma_dfs['terms']
-        term_df['grp_prompt'] = term_df['grp_prompt'].astype('object')
-
         gp_df = term_df[term_df['ttype']=='group']
-        
+        tb_df = self.scma_dfs['tables']
         db_df = self.scma_dfs['database']
         db_name = db_df['database_name'][0]
         dbInfo = []
@@ -507,7 +505,8 @@ class ScmaGen:
                     grp_prompt.append(r['term_name'])
                 
             grp_prompt = list(set(grp_prompt))
-            term_df.loc[term_df[(term_df['term_name'] == gp_name) & (term_df['ttype'] == 'group')].index[0], 'grp_prompt'] = ', '.join(grp_prompt)
+            grp_prompt = ','.join(grp_prompt)
+            tb_df.loc[tb_df['group_name'] == gp_name, 'grp_prompt'] = grp_prompt
             dbInfo.append(f"group name: {gp_name}\ndescription: {row['term_desc']}\n column information: {grp_prompt}")
         
         dbInfo = '\n'.join(dbInfo)
@@ -530,6 +529,7 @@ class ScmaGen:
     def output_schma(self,xls_name):
         writer = pd.ExcelWriter(f'{xls_name}')
         for tb_name, df in self.scma_dfs.items():
+            df = df.fillna('')
             tdict = df.to_dict(orient='records')
             print(f"Table: {tb_name}, Rows: {len(tdict)}")
             df.to_excel(writer, sheet_name=f'{tb_name}', index=False)
@@ -565,4 +565,3 @@ if __name__ == '__main__':
     asyncio.run(mg.table_description(xls_name))
     asyncio.run(mg.db_description(xls_name))
     print('done')
-

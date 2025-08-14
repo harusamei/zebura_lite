@@ -500,18 +500,15 @@ Please strictly follow the JSON format of the output example.
 // 根据以有的组和标签体系，对一个表进行分组和打标签
 <TASK:tb_classification>
 ### Task Description  
-Given a database table along with a predefined list of grouping keywords and tags, categorize the data by grouping relevant entries together and assigning appropriate tags based on the provided lists.
-
-- Grouping Task: You will be provided with a list of grouping keywords (each with a name and description). Analyze the content of each database table and assign it to the most relevant group.
-- Tagging Task: You will also be given a list of tags (each with a name and description). For each database table, select 2-3 tags that best summarize its core function or purpose. 
+Use the list of group names and the list of tag names to group the database table and assign tags.
 
 ### Input
-- Grouping keywords:
-  {group_info} 
-- Tag List: 
-  {tag_info}  
+- List of group names:
+{group_info} 
+- List of tag names: 
+{tag_info}  
 - Database Table: 
-  {table_info}  
+{table_info}  
 
 ### Requirements 
 - Each database table must be assigned to one group and at least one tag.
@@ -522,7 +519,7 @@ Given a database table along with a predefined list of grouping keywords and tag
 {{
     "table_name": "table_name",
     "group": "group_name",
-    "tags": ["tag1", "tag2"]
+    "tags": ["tag1", "tag2",...]
 }}
 ```
 </TASK>
