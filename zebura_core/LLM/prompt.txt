@@ -36,14 +36,18 @@ Given a database table's column information, generate a brief description of the
 
 </TASK>
 
-
-<TASK:column_grouping>
+// 数据治理中的元数据标准化，字段合并
+<TASK: field_consolidation>
 ### Task Description:
-你是一个数据库架构分析专家。给定一组数据库表及其字段的 schema 信息，你的任务是对这些字段进行分类，将功能或描述内容相似的字段归为同一组，并为每个组提供一个合适的组名。
+你是一名数据治理与数据库架构专家，擅长对数据库字段进行语义分析与标准化。  
+任务是：根据提供的数据库表字段名及其 schema 信息，识别语义相同或相近的字段，并将它们合并为统一的标准字段表。  
 
-### Requirements:
-- 语义相似性分析：按字段的类型、实际功能或描述内容进行合理分组，而不仅仅是名称相似。
-- 组名清晰：组名要简洁且能够准确概括组内字段的意义。
+### 规则：
+1. 按语义相似性分组，将同义、缩写、不同命名风格（下划线命名、驼峰命名等）但含义相同或高度相近的字段合并为一个标准字段。
+2. 每组仅保留一个标准字段名（选择最常用、最清晰、最简洁的命名）。
+3. 合并时需参考 schema 中的数据类型、长度、约束等信息，避免将语义不同的字段错误合并。
+4. 输出时必须覆盖所有输入字段（合并后作为同义词保留）。
+5. 不创造新的字段含义，仅基于现有信息合并
 
 ### Input:
 {column_info}
@@ -52,54 +56,52 @@ Given a database table's column information, generate a brief description of the
 ```json
 [
   {{
-      "group_name": "group1",
-      "columns": ["column1", "column2", "column3"]
+      "canonical_field": "name1",
+      "synonyms": ["column1", "column2", "column3"]
   }},
   {{
-      "group_name": "group2",
-      "columns": ["column4", "column5"]
+      "canonical_field": "name2",
+      "synonyms": ["column4", "column5"]
   }}
 ]
 ```
 </TASK>
 
-// 给表的一个列名信息增加上位词
-<TASK:column_hypernym>
-### Task Description:
-Assigning hypernyms to a given set of database column names.
-Given a set of column names from database tables and a list of hypernyms, iterate through each column name and find the hypernym that best fits the logical design of a typical database schema.
+// 存在一个data dictionry/Standard Field List 情况下，将fieldname mapping 到标准字段名表
+// 标准字段映射
+<TASK:field_mapping>
+You are a data governance and database architecture expert. Your task is to map database columns to a given Standard Field List.
 
-### Instructions:
-You will be provided with a set of column names from database tables and a predefined list of hypernyms. Your task is to iterate through each column name and determine the most appropriate hypernym based on typical database schema design.
-
-### Requirements:
-- Every column must be assigned a hypernym from the given list.
-- If a column name matches multiple hypernyms, select the one that best aligns with logical database design. 
-- Output the results in JSON format, including the column name and its assigned hypernym.  
+### Rules:
+1. Using the provided Standard Field List and the metadata for each column (column name, table name, data type, and sample values), map each column to the most appropriate standard field.
+2. When matching, consider:
+   - Text similarity of column names (including abbreviations, underscores, camelCase variations, etc.)
+   - Data type (e.g., text, int, date)
+   - Meaning and format of sample values
+   - Context from the table name
+3. If no exact match exists, choose the closest semantically relevant standard field.
+4. Do not create new standard field names — only select from the provided Standard Field List.
+5. All input columns must be mapped to exactly one standard field.
+6. Output only the JSON mapping results, with no additional explanation.
 
 ### Input:
+- Standard Field List:
+{standard_field_list}
 
-- **Hypernym List**: A set of high-level concept words for classifying database column names.  
-  {hypernym_list} 
-
-- **Column Schema**: Detailed information about database columns, including table name, column names, data types, and samples.  
-  {column_info} 
+- Columns to Map:
+{column_info}
 
 ### Output:
-
+Return a JSON array in the following format:
 ```json
 [
-  {{
-    "column_name": "column1",
-    "assigned_hypernym": "hypernym1"
-  }},
-  {{
-    "column_name": "column2",
-    "assigned_hypernym": "hypernym2"
-  }}
+    {{
+        "table_name": "Original table name",
+        "column_name": "Original column name",
+        "mapped_field": "Mapped standard field name"
+    }}
 ]
 ```
-
 </TASK>
 
 
@@ -142,11 +144,19 @@ Please strictly follow the JSON format of the output example. not trailing comma
 <TASK:db_description>
 ### Task Description:
 
-You are an expert in database schema analysis. Given a database named {db_name} and grouped information about its tables, your task is to analyze and generate a concise description of the database. Since there are many tables, the input provides only a grouped overview of table functionalities and application scenarios, along with high-level details about column names for tables within the same group. Based on this information, you need to generate a brief summary of the database in {chat_lang}.
+You are a database expert. I will provide you with the following input information:
 
-### Requirements:
-- The generated description should be clear and concise, summarizing the main functionalities and application scenarios of the database.
-- The output should be in JSON format, including the database name and its description.
+- Database name: the given name of the database.
+- Group name list: represents logical groupings or themes of tables in the database.
+- Sample field list: a set of example fields from the tables (these fields are randomly sampled and may not be complete).
+
+Based on this information:
+
+- Use the provided database name directly.
+- Identify the domain/application area of the database (e.g., finance, healthcare, e-commerce, social media, IoT, etc.).
+- Write a brief description summarizing what kind of data the database stores and its main functions/use cases in {chat_lang}.
+
+The output must be in strict JSON format with no extra explanations.
 
 ### Input:
 {db_info}
@@ -155,6 +165,7 @@ You are an expert in database schema analysis. Given a database named {db_name} 
 ```json
 {{
   "database_name": "database_name",
+  "domain": "database_domain",
   "description": "A brief description of the database's main functions and application scenarios."
 }}
 ```
@@ -528,7 +539,7 @@ Use the list of group names and the list of tag names to group the database tabl
 <TASK:db_glossary>
 
 ### Task Description:
-You are provided with a database named {db_name} and several tables within the database. Each table consists of its name and a list of fields. Your task is to construct a glossary for both groups and tags based on this information. Additionally, you need to assign each table to a specific group and associate it with multiple tags.
+You are provided with a database named '{db_name}' and several tables within the database. Each table consists of its name and a list of fields. Your task is to construct a glossary for both groups and tags based on this information. Additionally, you need to assign each table to a specific group and associate it with multiple tags.
 
 ### Database Table Information:
 {tables_info}
@@ -628,43 +639,39 @@ Generate term expansions for the given terms based on the table below. Use metho
 
 </TASK>
 
-// 术语归一化，包括类别,tag， 字段名分组
-<TASK: term_normalization>
+// term deduplication and clustering, semantic term merging
+<TASK: term_merging>
+You are a terminology normalization expert. Your task is to analyze the provided term list, identify semantically identical or similar terms, and merge them into a unified canonical terminology list.
 
-### Task Description:
-Given a set of terms with their descriptions, group the terms that share the same meaning or function, and assign a standard name to each group. The total number of standard terms should be between 1 and {max_cats}.
-
-### Requirements:
-- Each standard term must include at least one original term.
-- Provide a description for each standard term.
-- The output should be in JSON format, strictly following the provided output example.
+### Rules:
+1. Group semantically identical or similar terms together (including synonyms, abbreviations, and variants).
+2. For each group, keep only ONE canonical form — choose the most common, clear, and concise version.
+3. The total number of canonical terms must not exceed {max_cats}.
+4. If the initial merge results in more than {max_cats} canonical terms, further merge semantically similar canonical terms until the total is within the limit.
+5. Include **all input terms** in the output (as synonyms if merged), and do not invent new meanings.
+6. Provide a **short description** for each canonical term based on its meaning in the input list.
 
 ### Input:
-- A list of terms with descriptions
+- Term List:
 {catInfo}
 
-### Output example:
+### Output:
+Return a JSON array in the following format:
 ```json
 [
     {{
-        "standard_term": "standard_term1",
-        "original_terms": ["term1", "term2"],
-        "description": "" // Description for standard_term1
+        "canonical_term": "Canonical_term1",
+        "synonyms": [list of synonyms from the input],
+        "description": "" // Description for Canonical_term1
     }},
     {{
-        "standard_term": "standard_term2",
-        "original_terms": ["term3", "term4"],
-        "description": ""     // Description for standard_term2
-    }},
-    {{
-        "standard_term": "standard_term3",
-        "original_terms": ["term5"],
-        "description": "" // Description for standard_term3
+        "canonical_term": "Canonical_term2",
+        "synonyms": [list of synonyms from the input],
+        "description": "" // Description for Canonical_term2
     }}
 ]
 ```
 </TASK>
-
 
 <TASK:translation>
 ### Task Description:

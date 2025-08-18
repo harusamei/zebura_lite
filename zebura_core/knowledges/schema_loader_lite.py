@@ -103,7 +103,7 @@ class ScmaLoader:
         
         return tList
             
-    # Z_META_FIELDS = ['table_name','column_name','alias','column_desc','column_type',
+    # Z_META_FIELDS = ['table_name','column_name','alias','col_desc','column_type',
     #            'column_key','column_length','val_lang', 'examples','comment']  
     # 得到某一个字段的上述meta信息
     def get_fieldInfo(self, tableName, columnName)->dict:
@@ -121,6 +121,7 @@ class ScmaLoader:
     # tb_names: relevant table list
     # max_len: the max length of all tables' prompt
     # 生成相关表信息的有长度限制的prompt  
+    # TODO 
     def gen_limited_prompt(self, max_len,tb_names=None) ->list:
         # 所有表
         if tb_names is None or len(tb_names) == 0:
@@ -133,7 +134,7 @@ class ScmaLoader:
             tb_len += len(table['tb_prompt'])
             lit_len += len(table['tb_promptlit'])
             if table['group_name'] not in g_prompts:
-                g_prompts[table['group_name']] = table['group_prompt']
+                g_prompts[table['group_name']] = table['grp_prompt']
         if tb_len < max_len:
             prompts = [f"Table:{table['table_name']}\n{table['tb_prompt']}" for table in table_list]
         elif lit_len < max_len:
@@ -146,23 +147,30 @@ class ScmaLoader:
         return prompts
 
     # 一张表的所有信息
-    def get_tb_prompt(self, tb_name):
+    def get_tb_info(self, tb_name):
         table = self.tables.get(tb_name,None)
-        if table is not None:
-            return table['tb_prompt']
-        else:
+        if table is None:
             return ""
-    # group prompt
-    def get_gp_prompt(self, tb_name):
-        table = self.tables.get(tb_name,None)
-        if table is not None:
-            return table['group_prompt']
-        else:
-            return ""
+        infos = [table['table_name']]
+        infos.append(table['tb_desc'])
+        infos.append(table['cols_info'])
+        return '\n'.join(infos)
 
-     # 所有表的prompt
-    def get_db_prompt(self):
-        return self.project['db_prompt'][0]
+    # group prompt
+    def get_gp_info(self, tb_name):
+        table = self.tables.get(tb_name,None)
+        if table is None:
+            return ""
+        infos = [table['group_name']]
+        infos.append(table['terms_info'])
+        return '\n'.join(infos)
+
+     # DB的所有表的信息
+    def get_db_info(self):
+        infos = [self.project['database_name'][0]]
+        infos.append(self.project['db_desc'][0])
+        infos.append(self.project['tbs_info'][0])
+        return '\n'.join(infos)
    
     # 含此column_name的所有表名  
     def get_tables_with_column(self, column_name) -> list: 
@@ -217,9 +225,9 @@ if __name__ == '__main__':
     print(loader.get_fieldInfo('imdb_movie_dataset', 'votes'))
 
     print(loader.get_tables(tbList[:2]))
-    print(loader.get_tb_prompt('imdb_movie_dataset'))
+    print(loader.get_tb_info('imdb_movie_dataset'))
     print(loader.get_gp_prompt('Movie Information'))
-    print(loader.get_db_prompt())
+    print(loader.get_db_info())
 
     print(loader.get_tables_with_column('rank')) 
     print('_________________________')

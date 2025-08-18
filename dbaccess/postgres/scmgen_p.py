@@ -106,13 +106,13 @@ class ScmaGenerator(ScmaGen):
 
         if parsed['status'] == 'failed':
             df['alias'] = ''
-            df['column_desc'] = ''
+            df['col_desc'] = ''
             df['val_lang'] = ''
             return (tb_dict,df)
         tb_dict['tb_desc'] = parsed['msg'].get('table_description','')
         columns = parsed['msg']['columns']
         df1 = pd.DataFrame(columns)
-        df1 = df1.rename(columns={'translation_and_aliases':'alias', 'description':'column_desc'})
+        df1 = df1.rename(columns={'translation_and_aliases':'alias', 'description':'col_desc'})
         df1['alias'] = df1['alias'].apply(lambda x: ', '.join(x))
 
         if set(df['column_name']) != set(df1['column_name']):

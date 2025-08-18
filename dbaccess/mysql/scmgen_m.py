@@ -41,7 +41,7 @@ class ScmaGenerator(ScmaGen):
             cursor = self.cnx.cursor()
             cursor.execute(query)
             result = cursor.fetchall()
-            # self.fields = ['table_name','column_name','alias','column_desc','column_type',
+            # self.fields = ['table_name','column_name','alias','col_desc','column_type',
             #                   'column_key','column_length','val_lang', 'examples']  # 字段信息
             ex_fields = ['column_name', 'column_type', 'column_key','comment','char_length', 'num_length']
             df = pd.DataFrame(result, columns=ex_fields)
@@ -60,13 +60,13 @@ class ScmaGenerator(ScmaGen):
             parsed = self.ans_extr.output_extr('db_desc',llm_answ)
             if parsed['status'] == 'failed':
                 df['alias'] = ''
-                df['column_desc'] = ''
+                df['col_desc'] = ''
                 df['val_lang'] = ''
                 return (tb_dict,df)
             tb_dict['tb_desc'] = parsed['msg'].get('table_description','')
             columns = parsed['msg']['columns']
             df1 = pd.DataFrame(columns)
-            df1 = df1.rename(columns={'translation_and_aliases':'alias', 'description':'column_desc'})
+            df1 = df1.rename(columns={'translation_and_aliases':'alias', 'description':'col_desc'})
             df1['alias'] = df1['alias'].apply(lambda x: ', '.join(x))
             if set(df['column_name']) != set(df1['column_name']):
                 diff_cols = df['column_name'][~df['column_name'].isin(df1['column_name'])]

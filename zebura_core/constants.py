@@ -27,15 +27,19 @@ S_PROMPT_FILE = 'zebura_core/LLM/prompt.txt'         # prompt file name
 # chat_lang, 该项目默认交流语言
 # val_lang, 字段内容的语言
 # tb_lang，字段名本身的语言
-# 项目信息, 所有表整合的prompt，数据归属
-Z_META_PROJECT = tuple(['database_name','domain','db_desc','chat_lang','possessor','db_prompt'])
-# 字段信息
-Z_META_FIELDS = tuple(['table_name','column_name','hypernym','column_desc','column_type',
+
+# 项目信息, 数据归属，tbs_info 包含的所有表名
+Z_META_PROJECT = tuple(['database_name','domain','db_desc','chat_lang','possessor'])
+# 字段信息, hcol：field的上位词
+Z_META_FIELDS = tuple(['table_name','column_name','hcol','col_desc','column_type',
                 'column_key','column_length','val_lang', 'examples','alias','comment']) 
-Z_META_TABLES = tuple(['table_name','tb_desc','column_count','tb_prompt','tb_promptlit',
-                       'tb_lang', 'group_name','grp_prompt','tags','examples'])
-# ttype, table;field;tag
-Z_META_TERMS = tuple(['term_name','term_desc','related_tables','ttype'])
+Z_META_TABLES = tuple(['table_name','tb_desc','column_count','cols_info',
+                       'tb_lang', 'group_name','hcols_info','tags','examples'])
+# ttype terms的类型有三种group, tag, hcol
+# group是table的上位, hcol是field的上位
+# cols_info该term涉及所有表的字段
+# tbs_info 该term涉及的所有表
+Z_META_TERMS = tuple(['term_name','term_desc','ttype','tbs_info','cols_info'])
 
 if __name__ == '__main__':
     all_vars = locals()

@@ -67,14 +67,14 @@ class Question2SQL:
                 if  len(tSet)>0 and tSet.issubset(reltb_names):
                     shots.append({'question':case['doc']['question'],'sql':case['doc']['sql']})
             examples = json.dumps(shots, ensure_ascii=False)
-        db_info = self.get_db_prompt(tb_names)
+        db_info = self.get_tables_info(tb_names)
 
         tmpl = self.prompter.tasks['nl_to_sql']
         query = tmpl.format(db_info=db_info, examples=examples, question=question)
         llm_answ = await self.llm.ask_llm(query, '')
         result = self.ans_ext.output_extr('nl_to_sql',llm_answ)
 
-        # outfile = open('tmpOut.txt', 'a', encoding='utf-8-sig')
+        # outfile = open('tem.out', 'a', encoding='utf-8-sig')
         # outfile.write(query)
         # outfile.write("\n------------\n")
 
@@ -95,19 +95,16 @@ class Question2SQL:
         return resp
 
     # determine chat or db query, if db_query return relative tables
-    async def get_rel_tables(self, question, tb_names=None,gcases=None) -> list:
+    async def get_rel_tables(self, question, tb_names=None) -> list:
         if tb_names is None or len(tb_names) == 0:
             tb_names = self.scha_loader.get_table_nameList()
         
-        if gcases is not None:
-            tb_names1 = [name for case in gcases for name in case['doc']['table_name'].split(';')]
-            tb_names = set(tb_names1).union(set(tb_names))
-        db_info = self.get_db_prompt(tb_names)
+        db_info = self.get_tables_info(tb_names)
 
         tmpl = self.prompter.tasks['tables_choose']
         query = tmpl.format(chat_lang=self.chat_lang, question=question, db_info=db_info)
         # Track the query
-        # outfile = open('tmpOut.txt', 'a', encoding='utf-8-sig')
+        # outfile = open('tmp.txt', 'a', encoding='utf-8-sig')
         # outfile.write(query)
         # outfile.write("\n------------\n")
 
@@ -123,7 +120,7 @@ class Question2SQL:
         return result.get('chat','can I help you')
 
    
-    def get_db_prompt(self, tb_names) -> str:
+    def get_tables_info(self, tb_names) -> str:
         max_len = const.D_MAX_PROMPT_LEN
         pmtList = self.scha_loader.gen_limited_prompt(max_len, tb_names)
         return '\n'.join(pmtList)
