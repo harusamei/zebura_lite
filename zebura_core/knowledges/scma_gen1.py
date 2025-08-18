@@ -213,43 +213,25 @@ class ScmaGen:
         # 把filed 分拣到各个上位词下
         cat_sorter = {hyperItem['term_name']: {} for hyperItem in hypernyms}
         hypernym_list = '\n'.join([f"{hyperItem['term_name']} : {hyperItem['term_desc']}" for hyperItem in hypernyms])
-        
-        selected = ['table_name','column_name','column_type','val_lang','examples']
-        tmpl = self.prompter.tasks['field_mapping']
         # colnum_name: hcol
         col_hyper = {}
-        print(f"len of fd_df: {len(fd_df)}")
-        for i in range(0, len(fd_df), 5):
+        col_list = fd_df['column_name'].tolist()
+        col_hyper = {col: None for col in set(col_list)}
+        print(f"len of uniq_cols:: {len(col_hyper)}")
+
+        batch_size = 5  # 每次处理的field 数量
+        for i in range(0, len(fd_df), batch_size):
             print(f"Batch: {i}")
-            batch_df = fd_df.iloc[i:i+4]
-            column_info = batch_df[selected].to_markdown(index=False)
-            query = tmpl.format(column_info=column_info, standard_field_list=hypernym_list)
-           
-            llm_answ = await self.llm.ask_llm(query, '')
-            result = self.ans_extr.output_extr('field_mapping', llm_answ)
-            # track the query
-            # with open('tem.out', 'a', encoding='utf-8') as f:
-            #     f.write(query + '\n')
-            #     f.write(llm_answ + '\n------------\n')
-            
-            if result['status'] == 'failed' or (not isinstance(result['msg'], list)):
-                continue
-            result = result['msg']
-            for item in result:
-                if 'column_name' not in item or 'mapped_field' not in item:
-                    print(f"Failed to get column name or mapped_field: {item}")
-                    continue
-                col_name = item.get('column_name')
-                hcol_name = item.get('mapped_field')
-                
-                # 可能存在不同表的相同列名，在other_cols中已经存在，col_name与表名无关，且最后一个hypernym有效
-                col_hyper[col_name] = hcol_name
-                if batch_df[batch_df['column_name']==col_name].empty:
-                    print(f"Column not found: {col_name}")
-                    continue
-                    
-        print(f"len of uniq_cols: {len(col_hyper)}")
-        
+            batch_df = fd_df.iloc[i:i+batch_size]
+            t_col_hyper = await self.get_hcol(batch_df, hypernym_list)
+            col_hyper.update(t_col_hyper)
+        # 如有遗漏的字段，有一次机会
+        missing = [col for col, hcol in col_hyper.items() if hcol is None]
+        batch_df = fd_df[fd_df['column_name'].isin(missing)]
+        if len(batch_df) > 0:
+            t_col_hyper = await self.get_hcol(batch_df, hypernym_list)
+            col_hyper.update(t_col_hyper)
+
         for column_name, hypernym in col_hyper.items():
             fd_df.loc[fd_df[fd_df['column_name']==column_name].index, 'hcol'] = hypernym
             tList = fd_df[fd_df['column_name']==column_name]['table_name'].tolist()
@@ -274,6 +256,40 @@ class ScmaGen:
         print(f"the hypernym information of each field are saved to {meta_xls}")
 
         return
+    
+    # fields表的col_name 映射至 stand_list
+    async def get_hcol(self, cols_df, stand_list):
+        selected = ['table_name','column_name','column_type','val_lang','examples']
+        tmpl = self.prompter.tasks['field_mapping']
+        col_hyper = {}
+
+        column_info = cols_df[selected].to_markdown(index=False)
+        query = tmpl.format(column_info=column_info, standard_field_list=stand_list)
+        
+        llm_answ = await self.llm.ask_llm(query, '')
+        result = self.ans_extr.output_extr('field_mapping', llm_answ)
+        # track the query
+        # with open('tem.out', 'a', encoding='utf-8') as f:
+        #     f.write(query + '\n')
+        #     f.write(llm_answ + '\n------------\n')
+        
+        if result['status'] == 'failed' or (not isinstance(result['msg'], list)):
+            return {}
+        result = result['msg']
+        for item in result:
+            if 'column_name' not in item or 'mapped_field' not in item:
+                print(f"Failed to get column name or mapped_field: {item}")
+                continue
+            col_name = item.get('column_name')
+            hcol_name = item.get('mapped_field')
+            
+            # 可能存在不同表的相同列名，在other_cols中已经存在，col_name与表名无关，且最后一个hypernym有效
+            col_hyper[col_name] = hcol_name
+            if cols_df[cols_df['column_name']==col_name].empty:
+                print(f"Column not found: {col_name}")
+                continue
+        
+        return col_hyper
     
     # 生成表和字段的描述
     async def table_description(self, meta_xls):
@@ -561,7 +577,7 @@ if __name__ == '__main__':
 
     s_name = 'Mysql1'
     dbServer = make_dbServer(s_name)
-    dbServer['db_name'] = 'ebook'
+    dbServer['db_name'] = 'olist'
     # 创建存放文件的目录
     out_path=f'{const.S_TRAINING_PATH}/{dbServer["db_name"]}'
     wk_dir = os.getcwd()
@@ -572,15 +588,15 @@ if __name__ == '__main__':
     
     mg = ScmaGen(dbServer,'Chinese')
     # 1. 从数据库中读取所有表的schema信息
-    mg.gen_db_info(xls_name)
-    # 2. 生成table grouping
-    asyncio.run(mg.define_groups_tags(xls_name))
-    asyncio.run(mg.tb_enhance(xls_name))
-    # 3. 生成field 上位词
-    asyncio.run(mg.field_consolidation(xls_name))
+    # mg.gen_db_info(xls_name)
+    # # 2. 生成table grouping
+    # asyncio.run(mg.define_groups_tags(xls_name))
+    # asyncio.run(mg.tb_enhance(xls_name))
+    # # 3. 生成field 上位词
+    # asyncio.run(mg.field_consolidation(xls_name))
     asyncio.run(mg.field_enhance(xls_name))
     # 4. 生成 table, db描述
-    asyncio.run(mg.table_description(xls_name))
-    asyncio.run(mg.db_description(xls_name))
-    
+    # asyncio.run(mg.table_description(xls_name))
+    # asyncio.run(mg.db_description(xls_name))
+
     print('done')
