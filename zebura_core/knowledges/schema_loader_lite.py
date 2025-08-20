@@ -1,8 +1,10 @@
 # 关于当前DataBase的schema信息, 这个信息做为一种知识用于schema linkage,prompt and so on
-# lite版从xls中读取schema信息
+# 从xls中读取schema信息
+###############################
 import sys,os,logging
 sys.path.insert(0, os.getcwd().lower())
 import pandas as pd
+import json
 from typing import Dict, Union, List, Optional
 from settings import z_config
 import zebura_core.constants as const
@@ -119,31 +121,52 @@ class ScmaLoader:
         return tdict
 
     # tb_names: relevant table list
-    # max_len: the max length of all tables' prompt
-    # 生成相关表信息的有长度限制的prompt  
-    # TODO 
-    def gen_limited_prompt(self, max_len,tb_names=None) ->list:
+    # tbs_prompt的抽象，格式一样
+    def get_grp_prompt(self, tb_names=None):
+        if tb_names is None or len(tb_names) == 0:
+            tb_names = self.get_table_nameList()
+        
+        table_list = self.get_tables(tb_names)
+        grps = {}
+        for table in table_list:
+            grp_name = table['group_name']
+            hcols = table['hcols_info'].split(',')
+            if grp_name not in grps:
+                grps[grp_name] = hcols
+            else:
+                grps[grp_name].extend(hcols)
+        
+        prompts = []
+        for grp_name, hcols in grps.items():
+            prompts.append(f"Group:{grp_name}")
+            hcols = list(set(hcols))  # 去重
+            prompts.append(f"Hyper_Columns: {', '.join(hcols)}")
+        return prompts
+
+    def gen_tbs_prompt(self, tb_names=None):
         # 所有表
         if tb_names is None or len(tb_names) == 0:
             tb_names = self.get_table_nameList()
+        
+        lit_flag = False
+        if len(tb_names) >5:
+            lit_flag = True
 
-        tb_len, lit_len = 0, 0
-        g_prompts ={}
+        prompts = []
         table_list = self.get_tables(tb_names)
         for table in table_list:
-            tb_len += len(table['tb_prompt'])
-            lit_len += len(table['tb_promptlit'])
-            if table['group_name'] not in g_prompts:
-                g_prompts[table['group_name']] = table['grp_prompt']
-        if tb_len < max_len:
-            prompts = [f"Table:{table['table_name']}\n{table['tb_prompt']}" for table in table_list]
-        elif lit_len < max_len:
-            prompts = [f"Table:{table['table_name']}\n{table['tb_promptlit']}" for table in table_list]
-        else:
-            prompts = [v for v in g_prompts.values()]
-            if sum(len(prompt) for prompt in prompts) > max_len:
-                prompts = [self.get_db_prompt()]
-
+            prompts.append(f"Table:{table['table_name']}")
+            if lit_flag or table['column_count'] > 10:
+                prompts.append(f"Columns: {table['cols_info']}")
+            else:
+                prompts.append(f"Description: {table['tb_desc']}")
+                prompts.append(f"Columns: {table['cols_info']}")
+                prompts.append('Examples:')
+                examples = json.loads(table['examples'])
+                df = pd.DataFrame(examples)
+                md_data = df.to_markdown(index=False, tablefmt="grid")
+                prompts.append(f"[{md_data}]")
+            prompts.append('\n')
         return prompts
 
     # 一张表的所有信息
@@ -169,7 +192,9 @@ class ScmaLoader:
     def get_db_info(self):
         infos = [self.project['database_name'][0]]
         infos.append(self.project['db_desc'][0])
-        infos.append(self.project['tbs_info'][0])
+        tbList = self.get_table_nameList()
+        infos.append('Tables:')
+        infos.append(f"[{','.join(tbList)}]")
         return '\n'.join(infos)
    
     # 含此column_name的所有表名  
@@ -181,8 +206,8 @@ class ScmaLoader:
                 nameList.append(tb_name)
 
         return nameList
-    
-    def get_db_summary(self):
+
+    def get_db_summary(self) -> dict:
         db_info = {'database':{},'tables':[]}
         db_dict = {'name':self.project['database_name'][0],'desc':self.project['db_desc'][0]}
         db_info['database'] = db_dict
@@ -216,21 +241,25 @@ class ScmaLoader:
 if __name__ == '__main__':
     # Load the SQL patterns
     
-    loader = ScmaLoader('imdb', 'English')
+    loader = ScmaLoader('olist', 'English')
     tbList = loader.get_table_nameList()
     tbList = list(tbList)
     print(tbList)
     print(loader.get_column_nameList())
-    print(loader.get_column_nameList('imdb_movie_dataset'))
-    print(loader.get_fieldInfo('imdb_movie_dataset', 'votes'))
+    print(loader.get_column_nameList('olist_geolocation_dataset'))
+    print(loader.get_fieldInfo('olist_geolocation_dataset', 'geolocation_lat'))
 
     print(loader.get_tables(tbList[:2]))
-    print(loader.get_tb_info('imdb_movie_dataset'))
-    print(loader.get_gp_prompt('Movie Information'))
+    print(loader.get_tb_info('olist_geolocation_dataset'))
     print(loader.get_db_info())
 
-    print(loader.get_tables_with_column('rank')) 
+    print(loader.get_tables_with_column('geolocation_lat')) 
     print('_________________________')
-    print(loader.get_db_summary())
 
-
+    with open('tmp.out', 'w',encoding='utf-8') as f:
+        f.write('db_summary')
+        f.write(json.dumps(loader.get_db_summary()))
+        f.write('tbs_prompt\n')
+        f.write('\n'.join(loader.gen_tbs_prompt()))
+        f.write('grp_prompt\n')
+        f.write('\n'.join(loader.get_grp_prompt()))
